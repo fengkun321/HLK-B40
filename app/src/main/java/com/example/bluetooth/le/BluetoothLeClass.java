@@ -150,6 +150,8 @@ public class BluetoothLeClass {
 		}
 		return false;
 	}
+
+	private boolean isDiscoverServices = false;
 	// Implements callback methods for GATT events that the app cares about. For
 	// example,
 	// connection change and services discovered.
@@ -158,13 +160,32 @@ public class BluetoothLeClass {
 		 * 断开或连接 状态发生变化时调用
 		 * */
 		public void onConnectionStateChange(BluetoothGatt gatt,int status,int newState) {
+			Log.i(TAG, "onConnectionStateChange:status: "+status+",newState:"+newState);
+			mBluetoothGatt = gatt;
 			if (newState == BluetoothProfile.STATE_CONNECTED) {
 				if (mOnConnectListener != null)
 					mOnConnectListener.onConnected(gatt,status,newState);
 				Log.i(TAG, "Connected to GATT server.");
-				// Attempts to discover services after successful connection.
-				System.out.println("Attempting to start service discovery:"
-						+ mBluetoothGatt.discoverServices());
+//				try {
+//					Thread.sleep(600);
+//					Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+//				} catch (InterruptedException e) {
+//					e.printStackTrace();
+//				}
+
+
+//				isDiscoverServices = false;
+//				while (!isDiscoverServices) {
+//					Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+//					try {
+//						Thread.sleep(1000);
+//					} catch (InterruptedException e) {
+//						e.printStackTrace();
+//					}
+//				}
+
+
+
 				isDisconnected = false;
 
 			} else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -186,8 +207,10 @@ public class BluetoothLeClass {
 		 * 发现指定设备的服务信息（真正建立连接）
 		 * */
 		public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+			Log.i(TAG, "onServicesDiscovered:status: "+status);
 			if (status == BluetoothGatt.GATT_SUCCESS
 					&& mOnServiceDiscoverListener != null) {
+				isDiscoverServices = true;
 				mOnServiceDiscoverListener.onServiceDiscover(gatt);
 			} else {
 				Log.w(TAG, "onServicesDiscovered received: " + status);
@@ -233,7 +256,7 @@ public class BluetoothLeClass {
 				mtuSize = mtu;
 				strValue = "onMtuChanged success MTU = " + mtu;
 			}else {
-				mtuSize = 235;
+				mtuSize = 20;
 			    Log.d("BleService", "onMtuChanged fail ");
 				strValue = "onMtuChanged fail ";
 			}
@@ -246,8 +269,7 @@ public class BluetoothLeClass {
 
 	/**
 	 * Connects to the GATT server hosted on the Bluetooth LE device.
-	 * 
-	 * @param address
+	 *
 	 *            The device address of the destination device.
 	 * 
 	 * @return Return true if the connection is initiated successfully. The
@@ -255,27 +277,48 @@ public class BluetoothLeClass {
 	 *         {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
 	 *         callback.
 	 */
-	public boolean connect(final String address) {
-		final BluetoothDevice device = mBluetoothAdapter
-				.getRemoteDevice(address);
-		if (device == null) {
-			Log.w(TAG, "Device not found.  Unable to connect.");
-			return false;
+	public boolean connect(BluetoothDevice device,OnConnectListener l) {
+		if (l != null) {
+			mOnConnectListener = l;
 		}
-		// We want to directly connect to the device, so we are setting the
-		// autoConnect
-		// parameter to false.
-		mBluetoothGatt = device.connectGatt(mContext, false, mGattCallback);
-		Log.d(TAG, "Trying to create a new connection.");
-		mBluetoothDeviceAddress = address;
-		if (mBluetoothGatt != null) {
-			if (mBluetoothGatt.connect()) {
-				return true;
-			} else {
-				return false;
-			}
+		isDiscoverServices = true;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			mBluetoothGatt = device.connectGatt(mContext,
+					true, mGattCallback, BluetoothDevice.TRANSPORT_LE);
+		} else {
+			mBluetoothGatt = device.connectGatt(mContext,
+					true, mGattCallback);
 		}
+
+//		BluetoothDevice device = mBluetoothAdapter
+//				.getRemoteDevice(address);
+//		if (device == null) {
+//			Log.w(TAG, "Device not found.  Unable to connect.");
+//			return false;
+//		}
+//		// We want to directly connect to the device, so we are setting the
+//		// autoConnect
+//		// parameter to false.
+//		mBluetoothGatt = device.connectGatt(mContext, false, mGattCallback);
+//		Log.d(TAG, "Trying to create a new connection.");
+//		mBluetoothDeviceAddress = address;
+//		if (mBluetoothGatt != null) {
+//			if (mBluetoothGatt.connect()) {
+//				return true;
+//			} else {
+//				return false;
+//			}
+//		}
 		return true;
+	}
+
+	public boolean getServiceByGatt() {
+		Boolean isDiscover = false;
+		if (mBluetoothGatt != null) {
+			isDiscover = mBluetoothGatt.discoverServices();
+			Log.i(TAG, "Attempting to start service discovery:" + isDiscover);
+		}
+		return isDiscover;
 	}
 
 	/**
@@ -285,9 +328,13 @@ public class BluetoothLeClass {
 	 * callback.
 	 */
 	public void disconnect() {
+		isDiscoverServices = true;
 		System.out.println("disconnect");
-		mBluetoothGatt.disconnect();
-		mBluetoothGatt.close();
+		if (mBluetoothGatt != null)
+			mBluetoothGatt.disconnect();
+		if (mBluetoothGatt != null)
+			mBluetoothGatt.close();
+
 	}
 
 	/**
@@ -341,8 +388,8 @@ public class BluetoothLeClass {
 		return mBluetoothGatt.writeCharacteristic(characteristic);
 	}
 
-	public void writeDescriptor(BluetoothGattDescriptor gattDescriptor) {
-		mBluetoothGatt.writeDescriptor(gattDescriptor);
+	public boolean writeDescriptor(BluetoothGattDescriptor gattDescriptor) {
+		return mBluetoothGatt.writeDescriptor(gattDescriptor);
 	}
 	/**
 	 * Retrieves a list of supported GATT services on the connected device. This
@@ -354,7 +401,6 @@ public class BluetoothLeClass {
 	public List<BluetoothGattService> getSupportedGattServices() {
 		if (mBluetoothGatt == null)
 			return null;
-
 		return mBluetoothGatt.getServices();
 	}
 }

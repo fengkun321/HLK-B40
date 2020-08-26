@@ -2,18 +2,14 @@ package com.example.bluetooth.le;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.SortedSet;
-
-
 
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Handler;
+
+import com.example.bluetooth.le.adapter.FileListAdapter;
 
 
 /**
@@ -88,9 +84,7 @@ public class AdapterManager {
 	 */
 
 	public void updateFileListAdapter(String path){
-		
 		mFileList.clear();
-		
 		mFileList.addAll(FileUtil.getFileList(path));
 		if(null == mainHandler){
 			mainHandler = new Handler(mContext.getMainLooper());

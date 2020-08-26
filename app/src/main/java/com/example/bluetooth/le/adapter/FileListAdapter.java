@@ -1,4 +1,4 @@
-package com.example.bluetooth.le;
+package com.example.bluetooth.le.adapter;
 
 import java.io.File;
 import java.util.List;
@@ -15,6 +15,9 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.example.bluetooth.le.MyFile;
+import com.example.bluetooth.le.R;
 
 public class FileListAdapter extends BaseAdapter{
 	private LayoutInflater mLayoutInflater;

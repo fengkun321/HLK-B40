@@ -25,6 +25,7 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -32,37 +33,30 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
-import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 
 import com.example.bluetooth.le.BluetoothLeClass;
-import com.example.bluetooth.le.BluetoothLeClass.OnConnectListener;
 import com.example.bluetooth.le.BluetoothLeClass.OnConnectingListener;
 import com.example.bluetooth.le.BluetoothLeClass.OnDisconnectListener;
-import com.example.bluetooth.le.LeDeviceListAdapter;
+import com.example.bluetooth.le.adapter.LeDeviceListAdapter;
 import com.example.bluetooth.le.R;
 import com.example.bluetooth.le.BluetoothLeClass.OnDataAvailableListener;
 import com.example.bluetooth.le.BluetoothLeClass.OnServiceDiscoverListener;
@@ -92,7 +86,6 @@ public class DeviceScanActivity extends Activity {
 	private TextView restv = null;
 	private boolean connectfailed = false;
 	private boolean connect = true;
-	private static String bleaddr;
 	private boolean timeout = false;
 	private int connectTime = 0;
 	private static DeviceScanActivity deviceScanActivity;
@@ -147,7 +140,8 @@ public class DeviceScanActivity extends Activity {
 
 		mBLE = new BluetoothLeClass(this,mBluetoothAdapter);
 		// 发现BLE终端的Service时回调
-		mBLE.setOnServiceDiscoverListener(mOnServiceDiscover);
+//		mBLE.setOnServiceDiscoverListener(mOnServiceDiscover);
+//		mBLE.setOnConnectListener(OnConnectListener);
 		// 收到BLE终端数据交互的事件
 		mBLE.setOnDataAvailableListener(mOnDataAvailable);
 		dialog = new Dialog(this,R.style.dialog);  
@@ -267,12 +261,11 @@ public class DeviceScanActivity extends Activity {
 					connect = false;
 
 				} else {
-					System.out.println("addrsss " + bleaddr);
 					if (connect) {
 						connectTime ++;
 						if(connectTime < 2){
 							
-							mBLE.connect(bleaddr);
+							mBLE.connect(nowSelectDevice,OnConnectListener);
 							timeout = false;
 						}else{
 							connectTime = 0;
@@ -307,6 +300,7 @@ public class DeviceScanActivity extends Activity {
 		@Override
 		public void onItemClick(AdapterView<?> arg0, View v, int position,
 				long arg3) {
+			mBLE.disconnect();
 			nowSelectDevice = mLeDeviceListAdapter
 					.getDevice(position);
 			if (nowSelectDevice == null)
@@ -316,8 +310,7 @@ public class DeviceScanActivity extends Activity {
 			connectfailed = false;
 			connect = true;
 			timeout = false;
-			bleaddr = nowSelectDevice.getAddress();
-			mBLE.connect(bleaddr);
+			mBLE.connect(nowSelectDevice,OnConnectListener);
 
 		}
 
@@ -357,6 +350,32 @@ public class DeviceScanActivity extends Activity {
 		}
 
 	};
+
+
+	// 断开或连接 状态发生变化时调用
+	private BluetoothLeClass.OnConnectListener OnConnectListener = new BluetoothLeClass.OnConnectListener() {
+		@Override
+		public void onConnectting(BluetoothGatt gatt, int status, int newState) {
+			Log.e("onConnectting","status: "+status+",newState:"+newState);
+		}
+
+		@Override
+		public void onConnected(BluetoothGatt gatt, int status, int newState) {
+			Log.e("onConnected","status: "+status+",newState:"+newState);
+			if (newState == BluetoothProfile.STATE_CONNECTED) {
+				dialog.dismiss();
+				Intent intent = new Intent(DeviceScanActivity.this,TestDataActivity.class);
+				startActivity(intent);
+			}
+		}
+
+		@Override
+		public void onDisconnect(BluetoothGatt gatt, int status, int newState) {
+			Log.e("onDisconnect","status: "+status+",newState:"+newState);
+			dialog.dismiss();
+		}
+	};
+
 
 	void read_data(String action) {
 		Intent intent = new Intent(action);
@@ -445,7 +464,7 @@ public class DeviceScanActivity extends Activity {
 		dialog.dismiss();
 		gattlist = gattServices;
 
-		initServiceAndChara();
+//		initServiceAndChara();
 
 		Intent intent = new Intent(DeviceScanActivity.this,TestDataActivity.class);
 		startActivity(intent);
@@ -511,71 +530,5 @@ public class DeviceScanActivity extends Activity {
 	}
 
 
-	public ArrayList<UUIDInfo> serverList = new ArrayList<>();
-	public HashMap<String,ArrayList<UUIDInfo>> readCharaMap = new HashMap<>();
-	public HashMap<String,ArrayList<UUIDInfo>> writeCharaMap = new HashMap<>();
-
-	private void initServiceAndChara(){
-		serverList.clear();
-		readCharaMap.clear();
-		writeCharaMap.clear();
-		for (BluetoothGattService bluetoothGattService:gattlist){
-			UUIDInfo serverInfo = new UUIDInfo(bluetoothGattService.getUuid());
-			serverInfo.setStrCharactInfo("[Server]");
-			serverList.add(serverInfo);
-			ArrayList<UUIDInfo> readArray = new ArrayList<>();
-			ArrayList<UUIDInfo> writeArray = new ArrayList<>();
-			List<BluetoothGattCharacteristic> characteristics=bluetoothGattService.getCharacteristics();
-			for (BluetoothGattCharacteristic characteristic:characteristics){
-				int charaProp = characteristic.getProperties();
-				boolean isRead = false;
-				boolean isWrite = false;
-				// 具备读的特征
-				String strReadCharactInfo = "";
-				// 具备写的特征
-				String strWriteCharactInfo = "";
-				if ((charaProp & BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
-					isRead = true;
-					strReadCharactInfo += "[PROPERTY_READ]";
-					Log.e(TAG,"read_chara="+characteristic.getUuid()+"----read_service="+bluetoothGattService.getUuid());
-				}
-				if ((charaProp & BluetoothGattCharacteristic.PROPERTY_WRITE) > 0) {
-					isWrite = true;
-					strWriteCharactInfo += "[PROPERTY_WRITE]";
-					Log.e(TAG,"write_chara="+characteristic.getUuid()+"----write_service="+bluetoothGattService.getUuid());
-				}
-				if ((charaProp & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) > 0) {
-					isWrite = true;
-					strWriteCharactInfo += "[PROPERTY_WRITE_NO_RESPONSE]";
-					Log.e(TAG,"write_chara="+characteristic.getUuid()+"----write_service="+bluetoothGattService.getUuid());
-				}
-				if ((charaProp & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
-					isRead = true;
-					strReadCharactInfo += "[PROPERTY_NOTIFY]";
-					Log.e(TAG,"notify_chara="+characteristic.getUuid()+"----notify_service="+bluetoothGattService.getUuid());
-				}
-				if ((charaProp & BluetoothGattCharacteristic.PROPERTY_INDICATE) > 0) {
-					isRead = true;
-					strReadCharactInfo += "[PROPERTY_INDICATE]";
-					Log.e(TAG,"indicate_chara="+characteristic.getUuid()+"----indicate_service="+bluetoothGattService.getUuid());
-				}
-				if (isRead) {
-					UUIDInfo uuidInfo = new UUIDInfo(characteristic.getUuid());
-					uuidInfo.setStrCharactInfo(strReadCharactInfo);
-					uuidInfo.setBluetoothGattCharacteristic(characteristic);
-					readArray.add(uuidInfo);
-				}
-				if (isWrite) {
-					UUIDInfo uuidInfo = new UUIDInfo(characteristic.getUuid());
-					uuidInfo.setStrCharactInfo(strWriteCharactInfo);
-					uuidInfo.setBluetoothGattCharacteristic(characteristic);
-					writeArray.add(uuidInfo);
-				}
-
-				readCharaMap.put(bluetoothGattService.getUuid().toString(),readArray);
-				writeCharaMap.put(bluetoothGattService.getUuid().toString(),writeArray);
-			}
-		}
-	}
 
 }

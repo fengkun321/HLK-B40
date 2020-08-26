@@ -16,6 +16,7 @@
 
 package com.example.bluetooth.le;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -173,6 +174,26 @@ public class Utils {
      */
     public static byte charToByte(char c) {
         return (byte) "0123456789ABCDEF".indexOf(c);
+    }
+
+    /**
+     * 换算文件大小
+     * @param fSize
+     * @return
+     */
+    public static String formatFileSize(long fSize){
+        DecimalFormat df = new DecimalFormat("#.00");
+        String fileSizeString = "";
+        if(fSize<1024){
+            fileSizeString = df.format((double) fSize) + "B";
+        } else if ( fSize >104875 ){
+            fileSizeString = df.format((double) fSize/1024.0f) + "K";
+        } else if ( fSize >1073741824){
+            fileSizeString = df.format((double) fSize/104875.0f) + "M";
+        } else {
+            fileSizeString = df.format((double) fSize/1073741824.0f) + "G";
+        }
+        return fileSizeString;
     }
 
 }

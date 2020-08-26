@@ -1,4 +1,4 @@
-package com.example.bluetooth.le;
+package com.example.bluetooth.le.adapter;
 
 import android.content.Context;
 import android.database.DataSetObserver;
@@ -7,6 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
+
+import com.example.bluetooth.le.R;
+import com.example.bluetooth.le.UUIDInfo;
 
 import java.util.ArrayList;
 

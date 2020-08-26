@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+    android:layout_height="fill_parent"
+	android:background="@drawable/bg">
     <LinearLayout
         android:id="@+id/selectFileBtnLayout" 
         android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
 	    android:layout_alignParentBottom="true"
-	    android:background="#C0C0C0"
 	    android:padding="2dp"
 	    android:orientation="horizontal">
 	    <Button
@@ -15,32 +15,24 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/back" />
+            android:text="上一级" />
         <Button
             android:id="@+id/selectFileEnsureBtn"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/ensure" />
-       	<Button 
-       	    android:id="@+id/selectFileCancelBtn"
-       	    android:layout_width="fill_parent"
-		    android:layout_height="wrap_content"
-		    android:layout_weight="1"
-		    android:text="@string/cancel"/>
     </LinearLayout>
     <LinearLayout 
         android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
 		android:layout_above="@id/selectFileBtnLayout"
-		android:padding="5dp"
-		android:background="#C0C0C0">
+		android:padding="5dp">
 	    <LinearLayout 
 	        android:layout_width="fill_parent"
 		    android:layout_height="fill_parent"
 		    android:layout_marginBottom="5dp"
 		    android:padding="5dp"
-		    android:background="@drawable/listbg"
 		    android:cacheColorHint="#00000000">
 	        <ListView
 	            android:id="@+id/fileListView"

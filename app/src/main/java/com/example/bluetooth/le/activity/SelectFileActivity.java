@@ -4,7 +4,7 @@ import java.io.File;
 
 import com.example.bluetooth.le.AdapterManager;
 import com.example.bluetooth.le.BluetoothApplication;
-import com.example.bluetooth.le.FileListAdapter;
+import com.example.bluetooth.le.adapter.FileListAdapter;
 import com.example.bluetooth.le.R;
 
 
@@ -41,13 +41,14 @@ public class SelectFileActivity extends Activity {
 	private String sdcardPath;  //sd卡路径
 	private String path;     //当前文件父目录
 	
-	Button mBackBtn;  //返回按钮
+	Button mBackBtn;  //上一级按钮
 	Button mEnsureBtn;   //确定按钮
-	Button mCancelBtn;   //取消按钮
 
 	TextView mLastClickView;   //最后一次点击的文件 --文件名
 	TextView mNowClickView;   //现在点击的文件 -- 文件名
 	private boolean isSelected = false;   //是否选择了文件   (非文件夹)
+	public static final String SEND_FILE_NAME = "sendFileName";
+	public static final int RESULT_CODE = 1000;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +58,6 @@ public class SelectFileActivity extends Activity {
 		mFileListView = (ListView) findViewById(R.id.fileListView);
 		mBackBtn = (Button) findViewById(R.id.selectFileBackBtn);
 		mEnsureBtn = (Button) findViewById(R.id.selectFileEnsureBtn);
-		mCancelBtn = (Button) findViewById(R.id.selectFileCancelBtn);
 		Intent intent = getIntent();
 		path = intent.getStringExtra("filepatch");
 		//取得sd卡目录
@@ -77,13 +77,6 @@ public class SelectFileActivity extends Activity {
 		mFileListView.setOnItemClickListener(mFileListOnItemClickListener);
 		mBackBtn.setOnClickListener(mBackBtnClickListener);
 		mEnsureBtn.setOnClickListener(mEnsureBtnClickListener);
-		mCancelBtn.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				SelectFileActivity.this.finish();
-			}
-		});
 		
 	}
 	
@@ -101,11 +94,11 @@ public class SelectFileActivity extends Activity {
 				//如果是文件， 则选中 --- 文件名变色 
 				if(null != mLastClickView){
 					//若之前选中了文件， 则取消之前选择  -- 恢复颜色
-					mLastClickView.setTextColor(Color.LTGRAY);
+					mLastClickView.setTextColor(getResources().getColor(R.color.white));
 				}
 				//改变文件名颜色, 选中文件
 				mNowClickView = (TextView) view.findViewById(R.id.fileNameTV);
-				mNowClickView.setTextColor(Color.GREEN);
+				mNowClickView.setTextColor(getResources().getColor(R.color.cheng));
 				isSelected = true;
 				//设置为最后一次点击的文件
 				mLastClickView = mNowClickView;
@@ -167,10 +160,8 @@ public class SelectFileActivity extends Activity {
 		}
 		if(null == updateFileListRunnable){
 			updateFileListRunnable = new Runnable() {
-							
 				@Override
 				public void run() {
-					
 					mAdapterManager.updateFileListAdapter(path);
 				}
 			};

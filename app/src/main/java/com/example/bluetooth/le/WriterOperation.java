@@ -7,16 +7,16 @@ import com.example.bluetooth.le.activity.ReadWriteActivity;
 import android.bluetooth.BluetoothGattCharacteristic;
 
 public class WriterOperation {
-	private final static int OTA_CMD_NVDS_TYPE = 0;
-	private final static int OTA_CMD_GET_STR_BASE = 1;
-	private final static int OTA_CMD_PAGE_ERASE = 3;
-	private final static int OTA_CMD_CHIP_ERASE = 4;
-	private final static int OTA_CMD_WRITE_DATA = 5;
-	private final static int OTA_CMD_READ_DATA = 6;
-	private final static int OTA_CMD_WRITE_MEM = 7;
-	private final static int OTA_CMD_READ_MEM  = 8;
-    private final static int OTA_CMD_REBOOT = 9;
-	private final static int OTA_CMD_NULL = 10;
+	public final static int OTA_CMD_NVDS_TYPE = 0;
+	public final static int OTA_CMD_GET_STR_BASE = 1;
+	public final static int OTA_CMD_PAGE_ERASE = 3;
+	public final static int OTA_CMD_CHIP_ERASE = 4;
+	public final static int OTA_CMD_WRITE_DATA = 5;
+	public final static int OTA_CMD_READ_DATA = 6;
+	public final static int OTA_CMD_WRITE_MEM = 7;
+	public final static int OTA_CMD_READ_MEM  = 8;
+	public final static int OTA_CMD_REBOOT = 9;
+	public final static int OTA_CMD_NULL = 10;
 	byte [] context = new  byte[256]; 
 	private ReadWriteActivity rw;
 	private byte[] cmd_write_op(int opcode,int length,int addr,int datalenth){

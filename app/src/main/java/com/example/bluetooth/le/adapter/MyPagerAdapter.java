@@ -1,4 +1,4 @@
-package com.example.bluetooth.le;
+package com.example.bluetooth.le.adapter;
 
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;

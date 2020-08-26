@@ -1,4 +1,4 @@
-package com.example.bluetooth.le;
+package com.example.bluetooth.le.adapter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +13,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.example.bluetooth.le.R;
 
 public class LeDeviceListAdapter extends BaseAdapter {
 

@@ -61,8 +61,7 @@ public class OtaActiviy extends Activity {
 	private final static int OTA_CMD_NULL = 10;
 	private final static int DEVICE_8010 = 0;
 	private final static int DEVICE_8010H = 1;
-	public static final int RESULT_CODE = 1000;
-	public static final String SEND_FILE_NAME = "sendFileName";
+
 	private Editor editor;
 	private Button localbt;
 	private Button updatebt;
@@ -233,11 +232,11 @@ public class OtaActiviy extends Activity {
 		
 	}
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == RESULT_CODE) {
+		if (requestCode == SelectFileActivity.RESULT_CODE) {
 			// 请求为 "选择文件"
 			try {
 				// 取得选择的文件名
-				String sendFileName = data.getStringExtra(SEND_FILE_NAME);
+				String sendFileName = data.getStringExtra(SelectFileActivity.SEND_FILE_NAME);
 				editor.putString("path", sendFileName);
 				editor.commit();
 				pathet.setText(sendFileName);
@@ -253,7 +252,7 @@ public class OtaActiviy extends Activity {
 			Intent intent = new Intent(OtaActiviy.this,
 					SelectFileActivity.class);
 			intent.putExtra("filepatch", pathet.getText().toString());
-			startActivityForResult(intent, OtaActiviy.RESULT_CODE);
+			startActivityForResult(intent, SelectFileActivity.RESULT_CODE);
 		}
 
 	}
