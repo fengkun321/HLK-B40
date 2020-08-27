@@ -16,6 +16,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.support.annotation.RequiresApi
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -450,7 +451,7 @@ class TestDataActivity : Activity(),View.OnClickListener{
                 startActivityForResult(intent,SelectFileActivity.RESULT_CODE)
             }
             R.id.btnUpdate -> {
-                val strFilePath = tvFilePath.text.toString().trim()
+                val strFilePath = tvFilePath.text.toString()
                 startUpdateBT(strFilePath)
             }
 
@@ -551,15 +552,12 @@ class TestDataActivity : Activity(),View.OnClickListener{
     private val PERMISSIONS_STORAGE = arrayOf(
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS)
 
-    @TargetApi(Build.VERSION_CODES.M)
+    @RequiresApi(Build.VERSION_CODES.M)
     fun verifyStoragePermissions() {
-        val permission = checkSelfPermission(
-                Manifest.permission.ACCESS_FINE_LOCATION)
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(PERMISSIONS_STORAGE,REQUEST_EXTERNAL_STORAGE)
-        }
+        requestPermissions(PERMISSIONS_STORAGE,REQUEST_EXTERNAL_STORAGE)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -604,7 +602,7 @@ class TestDataActivity : Activity(),View.OnClickListener{
     /** 开始升级 */
     private fun startUpdateBT(strFilePath:String) {
         if (strFilePath.equals("")) return
-        val file = File(strFilePath)
+        val file = File(strFilePath.trim())
         // 校验文件
         if (!checkFileOK(file)) return
         tvLog.text = ""

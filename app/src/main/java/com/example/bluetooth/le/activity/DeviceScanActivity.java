@@ -127,7 +127,8 @@ public class DeviceScanActivity extends Activity {
 			if (PackageManager.PERMISSION_GRANTED != this.checkSelfPermission(
 					Manifest.permission.ACCESS_COARSE_LOCATION)) {
 				//请求权限
-				this.requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+				this.requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+								Manifest.permission.ACCESS_FINE_LOCATION},
 						REQUEST_CODE_ACCESS_COARSE_LOCATION);
 			}
 		}
