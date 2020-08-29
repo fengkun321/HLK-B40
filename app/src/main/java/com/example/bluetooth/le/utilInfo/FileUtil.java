@@ -1,8 +1,7 @@
-package com.example.bluetooth.le;
+package com.example.bluetooth.le.utilInfo;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;

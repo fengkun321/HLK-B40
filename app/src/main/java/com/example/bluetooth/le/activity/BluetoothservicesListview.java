@@ -5,9 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.example.bluetooth.le.BluetoothLeClass;
 import com.example.bluetooth.le.R;
-import com.example.bluetooth.le.Utils;
+import com.example.bluetooth.le.utilInfo.Utils;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -21,8 +20,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
-import android.widget.Toast;
 
 public class BluetoothservicesListview extends Activity{ 
 	private List<Map<String,String>> list;

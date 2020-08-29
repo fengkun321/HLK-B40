@@ -37,6 +37,16 @@ public class LeDeviceListAdapter extends BaseAdapter {
 			mLeDevices.add(device);
 			rssiHashMap.put(device.getAddress(),rssi);
 		}
+		notifyDataSetChanged();
+	}
+	public void updateDevice(BluetoothDevice device) {
+		for (int i = 0;i<mLeDevices.size();i++) {
+			if (mLeDevices.get(i).getAddress().equalsIgnoreCase(device.getAddress())) {
+				mLeDevices.set(i,device);
+				break;
+			}
+		}
+		notifyDataSetChanged();
 	}
 
 	public BluetoothDevice getDevice(int position) {
@@ -88,7 +98,24 @@ public class LeDeviceListAdapter extends BaseAdapter {
 			viewHolder.deviceName.setText(R.string.unknown_device);
 		viewHolder.deviceAddress.setText(device.getAddress());
 
-		viewHolder.tvRssi.setText(rssiHashMap.get(device.getAddress()));
+		int iBondState = device.getBondState();
+		viewHolder.tvRssi.setTextColor(mContext.getResources().getColor(R.color.hui));
+		String strBondState = "";
+		// 未配对
+		if (iBondState == BluetoothDevice.BOND_NONE) {
+			strBondState = "未配对";
+		}
+		// 配对中
+		else if (iBondState == BluetoothDevice.BOND_BONDING) {
+			strBondState = "配对中";
+		}
+		// 已配对
+		else if (iBondState == BluetoothDevice.BOND_BONDED) {
+			strBondState = "已配对";
+			viewHolder.tvRssi.setTextColor(mContext.getResources().getColor(R.color.green));
+		}
+		viewHolder.tvRssi.setText(rssiHashMap.get(device.getAddress())+"\n"+strBondState);
+//		viewHolder.tvRssi.setText(strBondState);
 
 		return view;
 	}

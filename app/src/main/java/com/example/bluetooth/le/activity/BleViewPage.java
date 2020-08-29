@@ -16,15 +16,12 @@ import com.example.bluetooth.le.BluetoothLeClass;
 import com.example.bluetooth.le.OpAdapte;
 import com.example.bluetooth.le.R;
 import com.example.bluetooth.le.RecvFile;
-import com.example.bluetooth.le.Utils;
 import com.example.bluetooth.le.WriterOperation;
 import com.example.bluetooth.le.BluetoothLeClass.OnDataAvailableListener;
-import com.example.bluetooth.le.activity.LedctrActivity.OnSeekBarChangeListenerimp;
 
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.app.SearchManager.OnCancelListener;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
@@ -40,11 +37,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewParent;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.SeekBar;

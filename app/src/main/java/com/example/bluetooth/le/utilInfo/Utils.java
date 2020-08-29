@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.bluetooth.le;
+package com.example.bluetooth.le.utilInfo;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -25,7 +25,6 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.text.TextUtils;
-import android.util.Log;
 
 /**
  * This class includes a small subset of standard GATT attributes for demonstration purposes.

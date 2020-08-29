@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.UUID;
 import com.example.bluetooth.le.BluetoothLeClass;
 import com.example.bluetooth.le.R;
-import com.example.bluetooth.le.Utils;
+import com.example.bluetooth.le.utilInfo.Utils;
 import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;

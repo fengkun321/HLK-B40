@@ -1,34 +1,24 @@
 package com.example.bluetooth.le.activity;
 
 import java.io.BufferedInputStream;
-import java.io.Externalizable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import com.example.bluetooth.le.AdapterManager;
 import com.example.bluetooth.le.BluetoothApplication;
 import com.example.bluetooth.le.BluetoothLeClass;
-import com.example.bluetooth.le.DownLoad;
 import com.example.bluetooth.le.R;
-import com.example.bluetooth.le.Utils;
+import com.example.bluetooth.le.utilInfo.Utils;
 import com.example.bluetooth.le.WriterOperation;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
@@ -36,10 +26,8 @@ import android.bluetooth.BluetoothGattService;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.DialogInterface.OnKeyListener;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
@@ -48,14 +36,9 @@ import android.os.Environment;
 import android.os.Handler;
 
 import android.os.Message;
-import android.provider.UserDictionary.Words;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 
 import android.widget.Button;
 import android.widget.EditText;

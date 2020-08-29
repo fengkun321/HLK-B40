@@ -45,7 +45,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="信号"
-        android:textColor="#555"
+        android:textColor="@color/hui"
         android:layout_toLeftOf="@+id/img"
         android:layout_marginRight="10dp"
         android:layout_centerVertical="true"/>

@@ -1,7 +1,6 @@
 package com.example.bluetooth.le.activity
 
 import android.Manifest
-import android.annotation.TargetApi
 import android.app.Activity
 import android.app.Dialog
 import android.app.ProgressDialog
@@ -27,6 +26,7 @@ import android.widget.TextView
 import android.widget.Toast
 import com.example.bluetooth.le.*
 import com.example.bluetooth.le.BluetoothLeClass.OnServiceDiscoverListener
+import com.example.bluetooth.le.utilInfo.Utils
 import com.example.bluetooth.le.adapter.MyPagerAdapter
 import com.example.bluetooth.le.adapter.MySpinnerAdapter
 import kotlinx.android.synthetic.main.activity_testdata.*
@@ -37,8 +37,8 @@ import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlinx.android.synthetic.main.viewpager_one.view.tvLog as tvLog1
 import kotlinx.android.synthetic.main.viewpager_two.view.scrollView as scrollView1
+import kotlinx.android.synthetic.main.viewpager_two.view.tvLog as tvLog1
 
 
 class TestDataActivity : Activity(),View.OnClickListener{
@@ -555,9 +555,12 @@ class TestDataActivity : Activity(),View.OnClickListener{
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS)
 
-    @RequiresApi(Build.VERSION_CODES.M)
     fun verifyStoragePermissions() {
-        requestPermissions(PERMISSIONS_STORAGE,REQUEST_EXTERNAL_STORAGE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(PERMISSIONS_STORAGE,REQUEST_EXTERNAL_STORAGE)
+        }
+
+
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
