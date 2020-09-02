@@ -63,6 +63,8 @@ limitations under the License.
 			<activity android:name="com.example.bluetooth.le.activity.SelectFileActivity"/>
 			<activity android:name="com.example.bluetooth.le.activity.LedctrActivity"/>
 			<activity android:name="com.example.bluetooth.le.activity.TestDataActivity"/>
+			<activity android:name="com.example.bluetooth.le.activity.OTAUpdateActivity"/>
+			<activity android:name="com.example.bluetooth.le.activity.SetParameterActivity"/>
 
     </application>
 </manifest>

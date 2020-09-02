@@ -105,33 +105,60 @@ public class BluetoothLeClass {
 				BluetoothGattCharacteristic characteristic, int status);
 		
 	}
+
+	public interface OnChangeMTUListener{
+		public void OnChangeMTUListener(String strResult,int iMTU);
+	}
+
+
+
 	private OnConnectListener mOnConnectListener;
 	private OnServiceDiscoverListener mOnServiceDiscoverListener;
 	private OnDataAvailableListener mOnDataAvailableListener;
 	private OnRecvDataListerner mOnRecvDataListerner;
 	private OnWriteDataListener mOnWriteDataListerner;
+	private OnChangeMTUListener mOnChangeMTUListener;
 	private Context mContext;
 
 	public void setOnConnectListener(OnConnectListener l) {
 		mOnConnectListener = l;
 	}
-
 	public void setOnWriteDataListener(OnWriteDataListener l){
 		mOnWriteDataListerner = l;
-		
 	}
-
 	public void setOnServiceDiscoverListener(OnServiceDiscoverListener l) {
 		mOnServiceDiscoverListener = l;
 	}
-
 	public void setOnDataAvailableListener(OnDataAvailableListener l) {
 		mOnDataAvailableListener = l;
 	}
     public void setOnRecvDataListener(OnRecvDataListerner l){
     	mOnRecvDataListerner = l;
-    	
     }
+	public void setOnChangeMTUListener(OnChangeMTUListener l){
+		mOnChangeMTUListener = l;
+	}
+
+	public void setUnConnectListener() {
+		mOnConnectListener = null;
+	}
+	public void setUnWriteDataListener(){
+		mOnWriteDataListerner = null;
+	}
+	public void setUnServiceDiscoverListener() {
+		mOnServiceDiscoverListener = null;
+	}
+	public void setUnDataAvailableListener() {
+		mOnDataAvailableListener = null;
+	}
+	public void setUnRecvDataListener(){
+		mOnRecvDataListerner = null;
+	}
+	public void setUnChangeMTUListener(){
+		mOnChangeMTUListener = null;
+	}
+
+
 	public BluetoothLeClass(Context c,BluetoothAdapter mBluetoothAdapter) {
 		mContext = c;
 		this.mBluetoothAdapter = mBluetoothAdapter;
@@ -261,6 +288,8 @@ public class BluetoothLeClass {
 				strValue = "onMtuChanged fail ";
 			}
 			mtuChange = true;
+			if (mOnChangeMTUListener != null)
+				mOnChangeMTUListener.OnChangeMTUListener(strValue,mtuSize);
 
 			mContext.sendBroadcast(new Intent("onMtuChanged").putExtra("onMtuChanged",strValue));
 		}
