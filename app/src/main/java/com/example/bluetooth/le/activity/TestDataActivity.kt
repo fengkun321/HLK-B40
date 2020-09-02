@@ -519,6 +519,7 @@ class TestDataActivity : Activity(),View.OnClickListener{
             // MTU变化的回调
             else if (action == "onMtuChanged") {
                 val strValue = intent.getStringExtra("onMtuChanged")
+                updateLogServer(strValue)
                 updateLog(strValue)
                 tvMTU.text = "MTU*${DeviceScanActivity.getInstance().mBLE.mtuSize}"
                 isResultCallBack = true
@@ -607,7 +608,7 @@ class TestDataActivity : Activity(),View.OnClickListener{
         if (strFilePath.equals("")) return
         val file = File(strFilePath.trim())
         // 校验文件
-        if (!checkFileOK(file)) return
+//        if (!checkFileOK(file)) return
         tvLog.text = ""
         updateLog("!!!!!!!!!!开始升级!!!!!!!!!!\n文件：$strFilePath")
         showDialog()
