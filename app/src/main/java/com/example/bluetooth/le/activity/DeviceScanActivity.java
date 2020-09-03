@@ -410,12 +410,12 @@ public class DeviceScanActivity extends Activity {
 					case BluetoothDevice.BOND_BONDED://配对结束
 						Log.e("BlueToothTestActivity", "配对结束");
 						Toast.makeText(DeviceScanActivity.this,"完成配对",Toast.LENGTH_SHORT).show();
-						mBLE.connect(device,OnConnectListener);
+//						mBLE.connect(device,OnConnectListener);
 						break;
 					case BluetoothDevice.BOND_NONE://取消配对/未配对
 						Log.e("BlueToothTestActivity", "取消配对/未配对......");
 						Toast.makeText(DeviceScanActivity.this,"取消配对",Toast.LENGTH_SHORT).show();
-						mBLE.connect(device,OnConnectListener);
+//						mBLE.connect(device,OnConnectListener);
 					default:
 						break;
 				}
