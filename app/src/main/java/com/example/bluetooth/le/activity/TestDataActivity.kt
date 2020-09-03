@@ -7,17 +7,13 @@ import android.app.ProgressDialog
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
-import android.content.BroadcastReceiver
 import android.content.ContentValues.TAG
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
-import android.support.annotation.RequiresApi
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -28,19 +24,21 @@ import android.widget.TextView
 import android.widget.Toast
 import com.example.bluetooth.le.*
 import com.example.bluetooth.le.BluetoothLeClass.OnServiceDiscoverListener
-import com.example.bluetooth.le.utilInfo.Utils
 import com.example.bluetooth.le.adapter.MyPagerAdapter
 import com.example.bluetooth.le.adapter.MySpinnerAdapter
+import com.example.bluetooth.le.utilInfo.GetOTAAddrTask
+import com.example.bluetooth.le.utilInfo.SendOTAFileTask
+import com.example.bluetooth.le.utilInfo.Utils
 import kotlinx.android.synthetic.main.activity_testdata.*
 import kotlinx.android.synthetic.main.viewpager_one.view.*
 import kotlinx.android.synthetic.main.viewpager_two.*
 import kotlinx.android.synthetic.main.viewpager_two.view.*
+import kotlinx.android.synthetic.main.viewpager_two.view.scrollView
+import kotlinx.android.synthetic.main.viewpager_two.view.tvLog
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlinx.android.synthetic.main.viewpager_two.view.scrollView as scrollView1
-import kotlinx.android.synthetic.main.viewpager_two.view.tvLog as tvLog1
 
 
 class TestDataActivity : Activity(),View.OnClickListener{
@@ -63,10 +61,15 @@ class TestDataActivity : Activity(),View.OnClickListener{
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_testdata)
 
+        val layoutinflater = LayoutInflater.from(this)
+        val view = layoutinflater.inflate(R.layout.loading_process_dialog_anim, null)
+        precenttv = view.findViewById<View>(R.id.precenttv) as TextView
+        mDialog = Dialog(this, R.style.dialog)
+        mDialog.setCancelable(false)
+        mDialog.setContentView(view)
+
         initUI()
         initData()
-        // 注册广播
-        reciverBand()
 
         val mAdapterManager = AdapterManager(this)
         BluetoothApplication.getInstance().adapterManager = mAdapterManager
@@ -147,6 +150,7 @@ class TestDataActivity : Activity(),View.OnClickListener{
         DeviceScanActivity.getInstance().mBLE.setOnWriteDataListener(OnWriteDataListener)
         // 接收到硬件返回的数据
         DeviceScanActivity.getInstance().mBLE.setOnRecvDataListener(OnRecvDataListerner)
+        DeviceScanActivity.getInstance().mBLE.setOnChangeMTUListener(onChangeMTUListener)
 
         view2.tvSendLen.text = "发送:$iSendLength"
         view2.tvRecvLen.text = "接收:$iRecvLength"
@@ -158,21 +162,21 @@ class TestDataActivity : Activity(),View.OnClickListener{
     }
 
     private var getServerTimer = Timer()
-    private fun startGetServerTimer(isRun:Boolean) {
+    private fun startGetServerTimer(isRun: Boolean) {
         getServerTimer.cancel()
         if (isRun) {
             getServerTimer = Timer()
-            getServerTimer.schedule(object : TimerTask(){
+            getServerTimer.schedule(object : TimerTask() {
                 override fun run() {
                     val getResult = DeviceScanActivity.getInstance().mBLE.getServiceByGatt()
                     if (!getResult) {
                         runOnUiThread {
                             getServerDialog.dismiss()
-                            Toast.makeText(this@TestDataActivity,"getServiceByGatt:$getResult",Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@TestDataActivity, "getServiceByGatt:$getResult", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
-            },0,5000)
+            }, 0, 5000)
         }
 
     }
@@ -291,14 +295,17 @@ class TestDataActivity : Activity(),View.OnClickListener{
                 strServerCharact += ("\n${itR.uuidString},${itR.strCharactInfo}")
             }
         }
-        view1.tvLog.text = ""
-        updateLogServer(strServerCharact)
 
         runOnUiThread {
+            view1.tvLog.text = ""
             getServerDialog.dismiss()
             val myAdapter = MySpinnerAdapter(serverList, this, true)
             view1.spinnerServer.setAdapter(myAdapter)
         }
+
+        updateLogServer(strServerCharact)
+
+
 
     }
 
@@ -327,10 +334,9 @@ class TestDataActivity : Activity(),View.OnClickListener{
     // 写操作的回调
     private val OnWriteDataListener = object : BluetoothLeClass.OnWriteDataListener {
         override fun OnCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
-            writeStatus = (status == 0)
-            Log.e("OnWriteDataListener","writeStatus:$writeStatus")
+            Log.e("OnWriteDataListener", "writeStatus:${status == 0})")
             // 如果没在升级，则打印写的结果
-            if (!isStartUpdateOTA) {
+            if (!isGetOTAAddr && !isSendOTAFile) {
                 val strStatus = BluetoothLeClass.strResultInfoByStatus(status)
                 var msgStart = Message()
                 msgStart.what = iRecvLog
@@ -345,15 +351,20 @@ class TestDataActivity : Activity(),View.OnClickListener{
     private val OnRecvDataListerner = object : BluetoothLeClass.OnRecvDataListerner {
         override fun OnCharacteristicRecv(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
             if (characteristic!!.value.size == 0) return
-            resultUpdateValue = characteristic.value
-            isResultCallBack = true
-            if (isStartUpdateOTA) {
-                Log.e("OnRecvDataListerner","isResultCallBack:$isResultCallBack")
+            // 正在获取位置信息
+            if (isGetOTAAddr) {
+                getOTAAddrTask?.recvValue = characteristic.value
+                getOTAAddrTask?.isResultCallBack = true
+                return
+            }
+            // 正在发文件
+            if (isSendOTAFile) {
+                sendOTAFileTask?.recvValue = characteristic.value
+                sendOTAFileTask?.isResultCallBack = true
                 return
             }
 
-            Log.e("OnRecvDataListerner","RECVDATA,to HEX:${Utils.bytesToHexString(characteristic!!.value)},to STR:${String(characteristic!!.value)}")
-
+            Log.e("OnRecvDataListerner", "RECVDATA,to HEX:${Utils.bytesToHexString(characteristic!!.value)},to STR:${String(characteristic!!.value)}")
             iRecvLength += characteristic!!.value.size
             var string = ""
             // 字符
@@ -368,6 +379,27 @@ class TestDataActivity : Activity(),View.OnClickListener{
             msgStart.obj = "RecvData<<<$string,Len:${characteristic!!.value.size}"
             mHandler.sendMessage(msgStart)
 
+        }
+    }
+
+
+    /** MTU改变监听 */
+    private val onChangeMTUListener = object : BluetoothLeClass.OnChangeMTUListener {
+        override fun onChangeMTUListener(isResult: Boolean?, strMsg: String?, iMTU: Int) {
+            updateLogServer(strMsg!!)
+            updateLog(strMsg!!)
+            runOnUiThread {
+                tvMTU.text = "MTU*$iMTU"
+            }
+            Log.e("onChangeMTUListener", "MTU设置结果：$strMsg")
+            // 正在升级
+            if (mDialog.isShowing) {
+                everyPackageSize = iMTU - 3 - 9
+                // 启动关于地址的线程(activity,发送帮助类，写事件，文件长度)
+                isGetOTAAddr = true
+                getOTAAddrTask = GetOTAAddrTask()
+                getOTAAddrTask?.execute(this@TestDataActivity, woperation, selectWrite, fileLength)
+            }
         }
     }
 
@@ -417,33 +449,24 @@ class TestDataActivity : Activity(),View.OnClickListener{
         }
     }
 
-    /**
-     * 注册广播
-     */
-    private fun reciverBand() {
-        val myIntentFilter = IntentFilter()
-        // MTU变化的回调
-        myIntentFilter.addAction("onMtuChanged")
-        // 注册广播
-        registerReceiver(mBroadcastReceiver, myIntentFilter)
-    }
 
     override fun onClick(v: View?) {
         when(v?.id) {
             R.id.tvMTU -> {
                 // api 小于21，不支持修改MTU
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                    Toast.makeText(this,"Android 系统版本过低！不支持该功能！",Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Android 系统版本过低！不支持该功能！", Toast.LENGTH_SHORT).show()
                     return
                 }
                 val strMtu = tvMTU.text.toString().split("*")
-                AreaAddWindowSetMTU(this,R.style.dialog,object : AreaAddWindowSetMTU.PeriodListener{
+                AreaAddWindowSetMTU(this, R.style.dialog, object : AreaAddWindowSetMTU.PeriodListener {
                     override fun refreshListener(oldPwd: String) {
                         DeviceScanActivity.getInstance().mBLE.requestMtu(oldPwd.toInt())
                     }
+
                     override fun clearListener() {
                     }
-                },strMtu[1]).show()
+                }, strMtu[1]).show()
             }
             R.id.tvClear -> {
                 tvLog.text = ""
@@ -454,12 +477,12 @@ class TestDataActivity : Activity(),View.OnClickListener{
             }
             R.id.btnRead -> {
                 val isRead = DeviceScanActivity.getInstance().mBLE.readCharacteristic(selectRead.bluetoothGattCharacteristic)
-                Log.e("TestDataActivity","isRead:$isRead")
+                Log.e("TestDataActivity", "isRead:$isRead")
 
             }
             R.id.btnNotify -> {
-                val isNotification = DeviceScanActivity.getInstance().mBLE.setCharacteristicNotification(selectRead.bluetoothGattCharacteristic,true)
-                Log.e("TestDataActivity","isNotification:$isNotification")
+                val isNotification = DeviceScanActivity.getInstance().mBLE.setCharacteristicNotification(selectRead.bluetoothGattCharacteristic, true)
+                Log.e("TestDataActivity", "isNotification:$isNotification")
 
                 updateLogServer("subscribe Notification:$isNotification")
                 if (isNotification) {
@@ -488,7 +511,7 @@ class TestDataActivity : Activity(),View.OnClickListener{
                 if (strFilePath.equals("请选择 bin 文件")) strFilePath = ""
                 val intent = Intent(this@TestDataActivity, SelectFileActivity::class.java)
                 intent.putExtra("filepatch", strFilePath)
-                startActivityForResult(intent,SelectFileActivity.RESULT_CODE)
+                startActivityForResult(intent, SelectFileActivity.RESULT_CODE)
             }
             R.id.btnUpdate -> {
                 val strFilePath = tvFilePath.text.toString()
@@ -502,15 +525,15 @@ class TestDataActivity : Activity(),View.OnClickListener{
     private var sendTimer = Timer()
     private var iSendSpeed : Long = 1000
     private var strSendData = ""
-    private fun SendTimer(isRun:Boolean) {
+    private fun SendTimer(isRun: Boolean) {
         sendTimer.cancel()
         if (isRun) {
             sendTimer = Timer()
-            sendTimer.schedule(object : TimerTask(){
+            sendTimer.schedule(object : TimerTask() {
                 override fun run() {
                     startSendData(strSendData)
                 }
-            },0,iSendSpeed)
+            }, 0, iSendSpeed)
         }
 
     }
@@ -537,37 +560,8 @@ class TestDataActivity : Activity(),View.OnClickListener{
 
     }
 
-    private val mBroadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
-            // 断开或连接 状态发生变化时调用
-            if (action == "onConnectionStateChange") {
 
-            }
-            // 读操作的回调
-            else if (action == "onCharacteristicRead") {
-
-            }
-            // 写操作的回调
-            else if (action == "onCharacteristicWrite") {
-
-            }
-            // 接收到硬件返回的数据
-            else if (action == "onCharacteristicChanged") {
-
-            }
-            // MTU变化的回调
-            else if (action == "onMtuChanged") {
-                val strValue = intent.getStringExtra("onMtuChanged")
-                updateLogServer(strValue)
-                updateLog(strValue)
-                tvMTU.text = "MTU*${DeviceScanActivity.getInstance().mBLE.mtuSize}"
-                isUpdateMTUCallBack = true
-            }
-        }
-    }
-
-    private fun updateLogServer(strValue:String) {
+    private fun updateLogServer(strValue: String) {
         if (strValue.equals("")) return
         val date = Date()
         val dateFormat = SimpleDateFormat("HH:mm:ss:SSS")
@@ -578,7 +572,7 @@ class TestDataActivity : Activity(),View.OnClickListener{
         }
     }
 
-    private fun updateLog(strValue:String) {
+    public fun updateLog(strValue: String) {
         if (strValue.equals("")) return
         var msgUpdate = Message()
         msgUpdate.what = iRecvLog
@@ -586,7 +580,7 @@ class TestDataActivity : Activity(),View.OnClickListener{
         mHandler.sendMessage(msgUpdate)
     }
 
-    private fun updateLog2(strValue:String) {
+    private fun updateLog2(strValue: String) {
         val date = Date()
         val dateFormat = SimpleDateFormat("HH:mm:ss:SSS")
         view2.tvLog.text =  view2.tvLog.text.toString().plus("\n${dateFormat.format(date)}::::$strValue")
@@ -602,7 +596,7 @@ class TestDataActivity : Activity(),View.OnClickListener{
 
     fun verifyStoragePermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(PERMISSIONS_STORAGE,REQUEST_EXTERNAL_STORAGE)
+            requestPermissions(PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE)
         }
 
 
@@ -635,44 +629,58 @@ class TestDataActivity : Activity(),View.OnClickListener{
         }
     }
 
+
     private lateinit var precenttv: TextView
     private lateinit var mDialog : Dialog
-    private fun showDialog() {
-        val layoutinflater = LayoutInflater.from(this)
-        val view = layoutinflater.inflate(R.layout.loading_process_dialog_anim, null)
-        precenttv = view.findViewById<View>(R.id.precenttv) as TextView
-        mDialog = Dialog(this, R.style.dialog)
-        mDialog.setCancelable(false)
-        mDialog.setContentView(view)
-        mDialog.show()
-    }
+    private var getOTAAddrTask: GetOTAAddrTask? = null
+    private var sendOTAFileTask: SendOTAFileTask? = null
+    private var isGetOTAAddr = false
+    private var isSendOTAFile = false
+    private var selectFile:File? = null
+    private var everyPackageSize = 0
+    private var fileLength = 0L
 
-    /** 开始升级 */
-    private fun startUpdateBT(strFilePath:String) {
+    /** 开始升级
+     *  1,设置MTU
+     *  2，查询存储地址
+     *  3，擦除升级文件大小相应的空间
+     *  4，发送文件
+     *  5，发送完毕，并发重启
+     *  6，自动断开连接
+     * */
+    private fun startUpdateBT(strFilePath: String) {
+        if (!isConnected) {
+            Toast.makeText(this@TestDataActivity, "设备已离线！", Toast.LENGTH_LONG).show()
+            return
+        }
         if (strFilePath.equals("请选择 bin 文件")) return
-        val file = File(strFilePath.trim())
+        selectFile = File(strFilePath.trim())
+        fileLength = selectFile!!.length()
+        updateLog("大小：${Utils.formatFileSize(fileLength)}")
         // 校验文件
 //        if (!checkFileOK(file)) return
         tvLog.text = ""
         updateLog("!!!!!!!!!!开始升级!!!!!!!!!!\n文件：$strFilePath")
-        showDialog()
-//         起一个线程，开始升级
-        Thread(Runnable {
-            try {
-                doSendFileByBluetooth(file)
-            } catch (e: FileNotFoundException) {
-                e.printStackTrace()
-            }
-        }).start()
+        mDialog.show()
+        Log.e("doSendFileByBluetooth", "设置MTU:512")
+        DeviceScanActivity.getInstance().mBLE.requestMtu(512)
+    }
+
+    /** 开始发送文件 */
+    public fun startSendFile(iStartAddr: Int) {
+        isGetOTAAddr = false
+        isSendOTAFile = true
+        sendOTAFileTask = SendOTAFileTask()
+        sendOTAFileTask?.execute(mHandler, woperation, selectWrite, selectFile,iStartAddr,everyPackageSize)
     }
 
     /**
      * 校验文件
      */
-    private fun checkFileOK(file:File) : Boolean {
+    private fun checkFileOK(file: File) : Boolean {
         var isOK = true
         if (file.length() < 100) {
-            Toast.makeText(this@TestDataActivity, "请选择有效的配置文件",Toast.LENGTH_LONG).show()
+            Toast.makeText(this@TestDataActivity, "请选择有效的配置文件", Toast.LENGTH_LONG).show()
             isOK = false
         }
         val infile = FileInputStream(file)
@@ -688,120 +696,8 @@ class TestDataActivity : Activity(),View.OnClickListener{
         return isOK
     }
 
-    private lateinit var isfile: FileInputStream
-    private lateinit var input : BufferedInputStream
-    private var leng = 0L
-    private var isUpdateMTUCallBack = false
-    private var isStartUpdateOTA = false
-    private var isResultCallBack = false
-    private var writeStatus = false
-    private var resultUpdateValue: ByteArray? = null
-    private val sencondaddr = 0x14000
-    private val firstaddr = 0
-    private var lastProgress : Float = 0f
 
-    fun doSendFileByBluetooth(file:File) {
-        var read_count: Int
-        var i = 0
-        var addr: Int // 存储的起始地址
-        var lastReadCount = 0
-        var packageSize = 235 //bleclass.mtuSize - 3; //235;
-        var send_data_count = 0
-        isfile = FileInputStream(file)
-        leng = file.length()
-        input = BufferedInputStream(isfile)
-        updateLog("大小：${Utils.formatFileSize(leng)}")
-        // 先设置mtu
-        isUpdateMTUCallBack = false
-        Log.e("doSendFileByBluetooth","设置MTU:512")
-        DeviceScanActivity.getInstance().mBLE.requestMtu(512)
-        while (!isUpdateMTUCallBack) {
-            if (!checkConnectState()) {
-                return
-            }
-        }
 
-        packageSize = DeviceScanActivity.getInstance().mBLE.mtuSize - 3 - 9
-        Log.e("doSendFileByBluetooth","实际MTU:${DeviceScanActivity.getInstance().mBLE.mtuSize},包长：${packageSize}")
-        var inputBuffer = ByteArray(packageSize)
-        // 再获取当前升级程序的存储起始地址
-        isResultCallBack = false
-        woperation.send_data(WriterOperation.OTA_CMD_GET_STR_BASE, 0, null, 0,
-                selectWrite.bluetoothGattCharacteristic, DeviceScanActivity.getInstance().mBLE)
-        while (!isResultCallBack) {
-            if (!checkConnectState()) {
-                return
-            }
-        }
-        addr = woperation.bytetoint(resultUpdateValue)
-        Log.e("doSendFileByBluetooth","BLE升级的起始位置：$addr")
-        updateLog("BLE升级的起始位置：$addr")
-        // 按照上面的起始地址和文件大小，计算具体需要发多少数据，并擦除模块对应的升级内存空间
-        page_erase(addr, leng, selectWrite.bluetoothGattCharacteristic, DeviceScanActivity.getInstance().mBLE)
-        try {
-            Log.e("doSendFileByBluetooth","开始写入：0%")
-            lastProgress = 0f
-            var msgStart = Message()
-            msgStart.what = iUpdateLog
-            msgStart.obj = "已写入..$lastProgress%"
-            mHandler.sendMessage(msgStart)
-            isStartUpdateOTA = true
-            // 最后根据MTU的传输长度，开始发送升级文件
-            while (input.read(inputBuffer, 0, packageSize).also { read_count = it } != -1) {
-                writeStatus = false
-                isResultCallBack = false
-                Log.e("doSendFileByBluetooth","写位置，addr：${addr}")
-                woperation.send_data(WriterOperation.OTA_CMD_WRITE_DATA, addr, inputBuffer, read_count,
-                        selectWrite.bluetoothGattCharacteristic, DeviceScanActivity.getInstance().mBLE)
-                //for(delay_num = 0;delay_num < 10000;delay_num++);
-                addr += read_count
-                lastReadCount = read_count
-                send_data_count += read_count
-                i++
-                // 更新升级进度%
-                val writePrecent = (send_data_count.toFloat() / leng * 100)
-                Log.e("doSendFileByBluetooth","已写入..$writePrecent%")
-                if ((writePrecent - lastProgress) > 2) {
-                    lastProgress = writePrecent
-                    var msgUpdate = Message()
-                    msgUpdate.what = iUpdateLog
-                    msgUpdate.obj = "已写入..$lastProgress%"
-                    mHandler.sendMessage(msgUpdate)
-                }
-
-//                while (!writeStatus){
-//                    Log.e("doSendFileByBluetooth","等待写，结果！")
-//                }
-//                Log.e("doSendFileByBluetooth","写，成功！")
-                while (!isResultCallBack) {
-                    Log.e("doSendFileByBluetooth","等待写，回复！")
-                    if (!checkConnectState()) {
-                        return
-                    }
-                }
-                Log.e("doSendFileByBluetooth","回复成功，开始下一帧！")
-
-            }
-            // 如果模块回复的数据大小和升级的不一致，则断开连接
-            while (woperation.bytetoint(resultUpdateValue) != (addr - lastReadCount)) {
-                if (!checkConnectState()) {
-                    return
-                }
-            }
-
-            Log.e("doSendFileByBluetooth","**********升级完成，则重启设备**********")
-            updateLog("**********升级完成，则重启设备**********")
-            isStartUpdateOTA = false
-            input.close()
-            isfile.close()
-
-            // 升级完成，则重启设备！
-            woperation.send_data(WriterOperation.OTA_CMD_REBOOT, 0, null,
-                    0,selectWrite.bluetoothGattCharacteristic, DeviceScanActivity.getInstance().mBLE)
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
 
     val iUpdateLog = 111
     val iUpdateStop = 222
@@ -817,9 +713,13 @@ class TestDataActivity : Activity(),View.OnClickListener{
                 }
                 iUpdateStop -> {
                     mDialog.cancel()
+                    isGetOTAAddr = false
+                    isSendOTAFile = false
+                    getOTAAddrTask?.cancel(true)
+                    sendOTAFileTask?.cancel(true)
                     view2.tvRecvLen.text = "接收:$iRecvLength"
                     val strMsg = (msg.obj).toString()
-                    Toast.makeText(this@TestDataActivity, strMsg,Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@TestDataActivity, strMsg, Toast.LENGTH_SHORT).show()
                     updateLog2(strMsg)
                 }
                 iRecvLog -> {
@@ -835,49 +735,11 @@ class TestDataActivity : Activity(),View.OnClickListener{
     }
 
 
-
-    private fun page_erase(addr: Int, length: Long, mgattCharacteristic: BluetoothGattCharacteristic, bleclass: BluetoothLeClass): Int {
-        var addr0 = addr
-        var count = length / 0x1000 // 0x1000 4096,4kb
-        if (length % 0x1000 != 0L) {
-            count++
-        }
-        Log.e("page_erase","该升级文件，需要擦除：$count 次空间，每次0x1000个长度")
-
-
-
-
-        for (i in 0 until count) {
-            isResultCallBack = false
-
-            woperation.send_data(WriterOperation.OTA_CMD_PAGE_ERASE, addr0, null, 0,
-                    mgattCharacteristic, bleclass)
-            while (!isResultCallBack)
-            Log.e("page_erase","addr:$addr0")
-            addr0 += 0x1000
-        }
-        return 0
-    }
-
-    private fun checkConnectState():Boolean{
-        if (!isConnected) {
-            var msgStop = Message()
-            msgStop.what = iUpdateStop
-            msgStop.obj = "连接断开"
-            mHandler.sendMessage(msgStop)
-            return false
-        }
-        return true
-    }
-
-
-
     override fun onBackPressed() {
         super.onBackPressed()
         startGetServerTimer(false)
         SendTimer(false)
         DeviceScanActivity.getInstance().mBLE.disconnect()
-        unregisterReceiver(mBroadcastReceiver)
     }
 
     override fun onDestroy() {

@@ -105,11 +105,15 @@ public class BluetoothLeClass {
 				BluetoothGattCharacteristic characteristic, int status);
 		
 	}
+	public interface OnChangeMTUListener {
+		public void onChangeMTUListener(Boolean isResult,String strMsg,int iMTU);
+	}
 	private OnConnectListener mOnConnectListener;
 	private OnServiceDiscoverListener mOnServiceDiscoverListener;
 	private OnDataAvailableListener mOnDataAvailableListener;
 	private OnRecvDataListerner mOnRecvDataListerner;
 	private OnWriteDataListener mOnWriteDataListerner;
+	private OnChangeMTUListener mOnChangeMTUListener;
 	private Context mContext;
 
 	public void setOnConnectListener(OnConnectListener l) {
@@ -123,6 +127,10 @@ public class BluetoothLeClass {
 
 	public void setOnServiceDiscoverListener(OnServiceDiscoverListener l) {
 		mOnServiceDiscoverListener = l;
+	}
+
+	public void setOnChangeMTUListener(OnChangeMTUListener l) {
+		mOnChangeMTUListener = l;
 	}
 
 	public void setOnDataAvailableListener(OnDataAvailableListener l) {
@@ -152,9 +160,6 @@ public class BluetoothLeClass {
 	}
 
 	private boolean isDiscoverServices = false;
-	// Implements callback methods for GATT events that the app cares about. For
-	// example,
-	// connection change and services discovered.
 	private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
 		/**
 		 * 断开或连接 状态发生变化时调用
@@ -252,6 +257,7 @@ public class BluetoothLeClass {
 		super.onMtuChanged(gatt, mtu, status);
 			String strValue = "";
 		    System.out.println("onMtuChanged "+mtu + " " + status);
+		    Boolean isResult = (BluetoothGatt.GATT_SUCCESS == status);
 			if (BluetoothGatt.GATT_SUCCESS == status) {
 				mtuSize = mtu;
 				strValue = "onMtuChanged success MTU = " + mtu;
@@ -260,9 +266,11 @@ public class BluetoothLeClass {
 			    Log.d("BleService", "onMtuChanged fail ");
 				strValue = "onMtuChanged fail ";
 			}
-			mtuChange = true;
 
-			mContext.sendBroadcast(new Intent("onMtuChanged").putExtra("onMtuChanged",strValue));
+			if (mOnChangeMTUListener != null) {
+				mOnChangeMTUListener.onChangeMTUListener(isResult,strValue,mtuSize);
+			}
+
 		}
 	};
 
