@@ -29,6 +29,7 @@ import com.example.bluetooth.le.adapter.MySpinnerAdapter
 import com.example.bluetooth.le.utilInfo.GetOTAAddrTask
 import com.example.bluetooth.le.utilInfo.SendOTAFileTask
 import com.example.bluetooth.le.utilInfo.Utils
+import com.example.bluetooth.le.view.AreaAddWindowSetMTU
 import kotlinx.android.synthetic.main.activity_testdata.*
 import kotlinx.android.synthetic.main.viewpager_one.view.*
 import kotlinx.android.synthetic.main.viewpager_two.*
@@ -398,7 +399,7 @@ class TestDataActivity : Activity(),View.OnClickListener{
                 // 启动关于地址的线程(activity,发送帮助类，写事件，文件长度)
                 isGetOTAAddr = true
                 getOTAAddrTask = GetOTAAddrTask()
-                getOTAAddrTask?.execute(this@TestDataActivity, woperation, selectWrite, fileLength)
+                getOTAAddrTask?.execute(mHandler, woperation, selectWrite, fileLength)
             }
         }
     }
@@ -702,6 +703,7 @@ class TestDataActivity : Activity(),View.OnClickListener{
     val iUpdateLog = 111
     val iUpdateStop = 222
     val iRecvLog = 333
+    val iSendFile = 444
     val mHandler = object : Handler() {
         override fun dispatchMessage(msg: Message) {
             super.dispatchMessage(msg)
@@ -726,6 +728,10 @@ class TestDataActivity : Activity(),View.OnClickListener{
                     view2.tvRecvLen.text = "接收:$iRecvLength"
                     val strMsg = (msg.obj).toString()
                     updateLog2(strMsg)
+                }
+                iSendFile -> {
+                    val iStartAddr = msg.obj.toString().toInt()
+                    startSendFile(iStartAddr)
                 }
 
             }

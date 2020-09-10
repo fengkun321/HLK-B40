@@ -45,9 +45,9 @@ public class MySpinnerAdapter implements SpinnerAdapter {
 
         holder.tvUUID.setText(list.get(position).getUUIDString());
         holder.tvChara.setText(list.get(position).getStrCharactInfo());
-        if (isServer) {
-            holder.tvChara.setVisibility(View.GONE);
-        }
+//        if (isServer) {
+//            holder.tvChara.setVisibility(View.GONE);
+//        }
         return convertView;
     }
 

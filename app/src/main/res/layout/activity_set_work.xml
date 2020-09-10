@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg">
+
+    <RelativeLayout android:id="@+id/rlTitle"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/black">
+
+        <ImageView android:id="@+id/imgBack"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/left_r"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"/>
+
+        <TextView android:id="@+id/tvName"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="参数设置"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:ellipsize="middle"
+            android:textColor="@color/white"
+            android:gravity="center"
+            android:layout_centerInParent="true"
+            android:paddingLeft="10dp"/>
+
+        <TextView android:id="@+id/tvRefresh"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="刷新"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:ellipsize="middle"
+            android:textColor="@color/white"
+            android:gravity="center"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"/>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="10dp"
+        android:background="@color/tou">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="软件版本："
+            android:textColor="@color/white"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="5dp"/>
+
+        <TextView android:id="@+id/tvVersion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:layout_centerVertical="true"
+            android:text="V 1.0"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="5dp">
+        </TextView>
+
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="1dp"
+        android:background="@color/tou">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="MAC 地址："
+            android:textColor="@color/white"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="5dp"/>
+
+        <TextView android:id="@+id/tvMac"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:layout_centerVertical="true"
+            android:text="AA:BB:CC:DD:EE:FF"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="5dp">
+        </TextView>
+
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="10dp"
+        android:background="@color/tou">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="蓝牙名称："
+            android:textColor="@color/white"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="5dp"/>
+
+        <EditText android:id="@+id/edName"
+            android:layout_width="180dp"
+            android:layout_height="match_parent"
+            android:layout_toLeftOf="@+id/btnNameSet"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:gravity="center_vertical"
+            android:paddingLeft="10dp"
+            android:hint="蓝牙名称"
+            android:singleLine="true"
+            android:background="@drawable/bg_edittext_focused"/>
+
+        <Button android:id="@+id/btnNameSet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="设置"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="5dp"
+            android:layout_centerVertical="true"/>
+
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="1dp"
+        android:background="@color/tou">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="连接间隔："
+            android:textColor="@color/white"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="5dp"/>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1.25ms x"
+            android:textColor="@color/white"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@+id/edCONNI"
+            android:layout_marginRight="5dp"/>
+
+        <EditText android:id="@+id/edCONNI"
+            android:layout_width="120dp"
+            android:layout_height="match_parent"
+            android:layout_toLeftOf="@+id/btnCONNISet"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:gravity="center_vertical"
+            android:paddingLeft="10dp"
+            android:hint="6-3200"
+            android:inputType="number"
+            android:singleLine="true"
+            android:background="@drawable/bg_edittext_focused"/>
+
+        <Button android:id="@+id/btnCONNISet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="设置"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="5dp"
+            android:layout_centerVertical="true"/>
+
+
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="1dp"
+        android:background="@color/tou">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="发射功率："
+            android:textColor="@color/white"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="5dp"/>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_edittext_focused"
+            android:layout_toLeftOf="@+id/btnRFPowerSet"
+            android:layout_centerVertical="true"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="5dp">
+
+            <Spinner android:id="@+id/spinnerPower"
+                android:layout_width="120dp"
+                android:layout_height="match_parent"
+                android:entries="@array/rfpower_table"
+                android:gravity="center" />
+
+        </RelativeLayout>
+
+
+        <Button android:id="@+id/btnRFPowerSet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="设置"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="5dp"
+            android:layout_centerVertical="true"/>
+
+
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="1dp"
+        android:background="@color/tou">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="串口波特率："
+            android:textColor="@color/white"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="5dp"/>
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_edittext_focused"
+            android:layout_toLeftOf="@+id/btnBandSet"
+            android:layout_centerVertical="true"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="5dp">
+
+            <Spinner android:id="@+id/spinnerBand"
+                android:layout_width="120dp"
+                android:layout_height="match_parent"
+                android:entries="@array/band_table"
+                android:gravity="center" />
+
+        </RelativeLayout>
+
+
+
+        <Button android:id="@+id/btnBandSet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="设置"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="5dp"
+            android:layout_centerVertical="true"/>
+
+
+    </RelativeLayout>
+
+
+
+</LinearLayout>

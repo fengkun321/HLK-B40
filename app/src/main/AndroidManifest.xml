@@ -65,6 +65,14 @@ limitations under the License.
 			<activity android:name="com.example.bluetooth.le.activity.LedctrActivity"/>
 			<activity android:name="com.example.bluetooth.le.activity.TestDataActivity"
                 android:screenOrientation = "portrait"/>
+        <activity android:name="com.example.bluetooth.le.activity.TRXActivity"
+            android:screenOrientation = "portrait"/>
+        <activity android:name="com.example.bluetooth.le.activity.DeviceInfoActivity"
+            android:screenOrientation = "portrait"/>
+        <activity android:name="com.example.bluetooth.le.activity.SetWorkActivity"
+            android:screenOrientation = "portrait"/>
+        <activity android:name="com.example.bluetooth.le.activity.OTAUpdateActivity"
+            android:screenOrientation = "portrait"/>
 
     </application>
 </manifest>

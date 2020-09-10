@@ -2,6 +2,8 @@ package com.example.bluetooth.le.utilInfo;
 
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
 import com.example.bluetooth.le.BluetoothLeClass;
@@ -12,7 +14,7 @@ import com.example.bluetooth.le.activity.TestDataActivity;
 
 // <参数，进度，结果>
 public class GetOTAAddrTask extends AsyncTask<Object, String, String> {
-    TestDataActivity testDataActivity;
+    Handler mHandler;
     WriterOperation woperation;
     UUIDInfo selectWrite;
     Long iFileSize;
@@ -29,7 +31,7 @@ public class GetOTAAddrTask extends AsyncTask<Object, String, String> {
 
     // 耗时操作
     protected String doInBackground(Object... objects) {
-        testDataActivity = (TestDataActivity) objects[0];
+        mHandler = (Handler) objects[0];
         woperation = (WriterOperation) objects[1];
         selectWrite = (UUIDInfo) objects[2];
         iFileSize = (Long) objects[3];
@@ -48,7 +50,12 @@ public class GetOTAAddrTask extends AsyncTask<Object, String, String> {
         // 按照上面的起始地址和文件大小，计算具体需要发多少数据，并擦除模块对应的升级内存空间
         page_erase(startAddr, iFileSize, selectWrite.getBluetoothGattCharacteristic(), DeviceScanActivity.getInstance().mBLE);
         Log.e("GetOTAAddrTask","位置擦除完成，准备发送固件！");
-        testDataActivity.updateLog("位置擦除完成，准备发送固件！");
+        Message msgUpdate = new Message();
+        msgUpdate.what = 333;
+        msgUpdate.obj = "位置擦除完成，准备发送固件！";
+        mHandler.sendMessage(msgUpdate);
+
+
         return null;
     }
 
@@ -76,13 +83,19 @@ public class GetOTAAddrTask extends AsyncTask<Object, String, String> {
     // 当前进度（由耗时操作传递）（可更新UI）
     protected void onProgressUpdate(String strMsg) {
         super.onProgressUpdate(strMsg);
-        testDataActivity.updateLog(strMsg);
+        Message msgUpdate = new Message();
+        msgUpdate.what = 333;
+        msgUpdate.obj = strMsg;
+        mHandler.sendMessage(msgUpdate);
     }
 
     // 操作完成（可更新UI）
     protected void onPostExecute(String strResult) {
         super.onPostExecute(strResult);
-        testDataActivity.startSendFile(startAddr);
+        Message msgUpdate = new Message();
+        msgUpdate.what = 444;
+        msgUpdate.obj = startAddr;
+        mHandler.sendMessage(msgUpdate);
     }
 
     // 取消回调（可更新UI）

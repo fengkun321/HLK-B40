@@ -97,6 +97,7 @@ public class DeviceScanActivity extends Activity {
 	public static DeviceScanActivity getInstance() {
 		return deviceScanActivity;
 	}
+	private boolean isLongClick = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -157,6 +158,8 @@ public class DeviceScanActivity extends Activity {
 
 		registerReceiver(searchDevices, intent);
 	}
+
+
 
 
 	@Override
@@ -229,7 +232,32 @@ public class DeviceScanActivity extends Activity {
 
 		mLeDeviceListAdapter = new LeDeviceListAdapter(this);
 		blelv.setAdapter(mLeDeviceListAdapter);
-		blelv.setOnItemClickListener(new OnItemClickListenerimp());
+		blelv.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				mBLE.disconnect();
+				nowSelectDevice = mLeDeviceListAdapter.getDevice(position);
+				if (nowSelectDevice == null) return;
+				scanLeDevice(false);
+				dialog.show();
+				timeout = false;
+				mBLE.connect(nowSelectDevice,OnConnectListener);
+			}
+		});
+		blelv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+			@Override
+			public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+				mBLE.disconnect();
+				nowSelectDevice = mLeDeviceListAdapter.getDevice(position);
+				if (nowSelectDevice == null) return false;
+				scanLeDevice(false);
+				dialog.show();
+				timeout = false;
+				isLongClick = true;
+				mBLE.connect(nowSelectDevice,OnConnectListener);
+				return true;
+			}
+		});
 
 	}
 
@@ -237,6 +265,7 @@ public class DeviceScanActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		scanLeDevice(true);
+		isLongClick = false;
 	}
 
 	@Override
@@ -251,16 +280,7 @@ public class DeviceScanActivity extends Activity {
 		@Override
 		public void onItemClick(AdapterView<?> arg0, View v, int position,
 				long arg3) {
-			mBLE.disconnect();
-			nowSelectDevice = mLeDeviceListAdapter
-					.getDevice(position);
-			if (nowSelectDevice == null)
-				return;
-			scanLeDevice(false);
-			dialog.show();
-			timeout = false;
 
-			mBLE.connect(nowSelectDevice,OnConnectListener);
 
 			// 如果未配对，则建立配对
 //			if (nowSelectDevice.getBondState() == BluetoothDevice.BOND_NONE) {
@@ -361,8 +381,18 @@ public class DeviceScanActivity extends Activity {
 			Log.e("onConnected","status: "+status+",newState:"+newState);
 			if (newState == BluetoothProfile.STATE_CONNECTED) {
 				dialog.dismiss();
-				Intent intent = new Intent(DeviceScanActivity.this,TestDataActivity.class);
-				startActivity(intent);
+//				Intent intent = new Intent(DeviceScanActivity.this,TestDataActivity.class);
+				Intent intent = new Intent(DeviceScanActivity.this,TRXActivity.class);
+//				Intent intent = new Intent(DeviceScanActivity.this,OTAUpdateActivity.class);
+
+				// 长按，OTA
+				if (isLongClick) {
+					startActivity(new Intent(DeviceScanActivity.this,OTAUpdateActivity.class));
+				}
+				// 短按，透传
+				else {
+					startActivity(new Intent(DeviceScanActivity.this,TRXActivity.class));
+				}
 			}
 		}
 

@@ -107,7 +107,7 @@ public class SendOTAFileTask extends AsyncTask<Object, String, String> {
     protected void onPostExecute(String strResult) {
         super.onPostExecute(strResult);
         Message msgUpdate = new Message();
-        msgUpdate.what = 333;
+        msgUpdate.what = 222;
         msgUpdate.obj = "**********升级完成，重启设备**********";
         mHandler.sendMessage(msgUpdate);
     }

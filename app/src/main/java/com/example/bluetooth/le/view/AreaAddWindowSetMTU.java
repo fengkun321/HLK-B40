@@ -1,4 +1,4 @@
-package com.example.bluetooth.le;
+package com.example.bluetooth.le.view;
 
 
 import android.app.Dialog;
@@ -10,6 +10,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.example.bluetooth.le.R;
 
 
 public class AreaAddWindowSetMTU extends  Dialog implements View.OnClickListener {

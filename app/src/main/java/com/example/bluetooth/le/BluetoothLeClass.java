@@ -140,6 +140,33 @@ public class BluetoothLeClass {
     	mOnRecvDataListerner = l;
     	
     }
+
+
+	public void setUnConnectListener() {
+		mOnConnectListener = null;
+	}
+
+	public void setUnWriteDataListener(){
+		mOnWriteDataListerner = null;
+
+	}
+
+	public void setUnServiceDiscoverListener() {
+		mOnServiceDiscoverListener = null;
+	}
+
+	public void setUnChangeMTUListener() {
+		mOnChangeMTUListener = null;
+	}
+
+	public void setUnDataAvailableListener() {
+		mOnDataAvailableListener = null;
+	}
+	public void setUnRecvDataListener(){
+		mOnRecvDataListerner = null;
+
+	}
+
 	public BluetoothLeClass(Context c,BluetoothAdapter mBluetoothAdapter) {
 		mContext = c;
 		this.mBluetoothAdapter = mBluetoothAdapter;
@@ -238,7 +265,7 @@ public class BluetoothLeClass {
 	    	if(mOnWriteDataListerner != null){
 	    		mOnWriteDataListerner.OnCharacteristicWrite(gatt, characteristic, status);
 	    	}
-	    };
+	    }
 		/**
 		 * 接收到硬件返回的数据
 		 * */
