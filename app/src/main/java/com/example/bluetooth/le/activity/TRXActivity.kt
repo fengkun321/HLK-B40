@@ -18,6 +18,7 @@ import android.widget.Toast
 import com.example.bluetooth.le.*
 import com.example.bluetooth.le.utilInfo.Utils
 import com.example.bluetooth.le.view.AddMenuWindowDialog
+import com.example.bluetooth.le.view.AreaAddWindow
 import com.example.bluetooth.le.view.AreaSelectServerWindow
 import kotlinx.android.synthetic.main.activity_trx_data.*
 import java.text.SimpleDateFormat
@@ -183,12 +184,63 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
                     startActivity(Intent(mContext,DeviceInfoActivity().javaClass))
                 }
                 1 -> {
-                    startActivity(Intent(mContext,SetWorkActivity().javaClass))
+                    strNowCheckCode = BluetoothApplication.getInstance().getValueBySharedPreferences(
+                            DeviceScanActivity.getInstance().nowSelectDevice.address)
+                    checkCodeInfo(strNowCheckCode)
+//                    startActivity(Intent(mContext,SetWorkActivity().javaClass))
                 }
             }
         }
         dialog1.show()
 
+    }
+
+    var readCodeUUID : UUIDInfo? = null
+    var writeCodeUUID : UUIDInfo? = null
+    var strNowCheckCode = ""
+    // 校验操作码
+    private fun checkCodeInfo(strCode : String) {
+        // 输入校验码
+        if (strCode == "") {
+            val checkCodeDialog = AreaAddWindow(mContext,R.style.dialog,"请输入秘钥",object : AreaAddWindow.PeriodListener{
+                override fun refreshListener(string: String) {
+                    strNowCheckCode = string
+                    checkCodeInfo(strNowCheckCode)
+                }
+            },"",false)
+            checkCodeDialog.show()
+        }
+        else {
+            readCodeUUID = null
+            writeCodeUUID = null
+            val readArray = readCharaMap[strSET_Server]
+            if (readArray!!.size > 0) {
+                for (readInfo in readArray) {
+                    if (readInfo.uuidString.equals(strCHECK_Read)) {
+                        readCodeUUID = readInfo
+                        break
+                    }
+                }
+            }
+            val writeArray = writeCharaMap[strSET_Server]
+            if (writeArray!!.size > 0) {
+                for (writeInfo in writeArray) {
+                    if (writeInfo.uuidString.equals(strCHECK_Write)) {
+                        writeCodeUUID = writeInfo
+                        break
+                    }
+                }
+            }
+
+            if (writeCodeUUID == null || readCodeUUID == null) {
+                showToast("未找到相关特征！")
+                return
+            }
+            var mgattCharacteristic = writeCodeUUID?.bluetoothGattCharacteristic!!
+            mgattCharacteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+            mgattCharacteristic.value = strCode.toByteArray()
+            DeviceScanActivity.getInstance().mBLE.writeCharacteristic(mgattCharacteristic)
+        }
     }
 
     private fun startGetServerTimer(isRun: Boolean) {
@@ -308,15 +360,31 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
             }
         }
 
-
-
-        selectServer = serverList[0]
+        for (serverInfo in serverList) {
+            if (serverInfo.uuidString.equals(strSerial_Server)) {
+                selectServer = serverInfo
+                break
+            }
+        }
+//        selectServer = serverList[0]
         val readArray = readCharaMap[selectServer?.uuidString]
         val writeArray = writeCharaMap[selectServer?.uuidString]
-        if (readArray!!.size > 0)
-            selectRead = readArray[0]
-        if (writeArray!!.size > 0)
-            selectWrite = writeArray[0]
+        if (readArray!!.size > 0) {
+            for (readInfo in readArray) {
+                if (readInfo.uuidString.equals(strSerial_Read)) {
+                    selectRead = readInfo
+                    break
+                }
+            }
+        }
+        if (writeArray!!.size > 0) {
+            for (readInfo in readArray) {
+                if (readInfo.uuidString.equals(strSerial_Write)) {
+                    selectWrite = readInfo
+                    break
+                }
+            }
+        }
 
         bindServerSubNofify()
     }
@@ -325,7 +393,25 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
     private val OnDataAvailableListener = object : BluetoothLeClass.OnDataAvailableListener {
         @RequiresApi(Build.VERSION_CODES.N)
         override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
-            sendBroadcast(Intent(BC_ReadData).putExtra("BluetoothGattCharacteristic",characteristic).putExtra("status",status))
+            sendBroadcast(Intent(BC_ReadData).putExtra("UUID",characteristic!!.uuid).putExtra("status",status).putExtra("data",characteristic.value))
+            // 正在验证code
+            if (readCodeUUID != null && characteristic?.uuid.toString().equals(readCodeUUID?.uuidString)) {
+                val strResultDataHex = Utils.bytesToHexString(characteristic?.value)
+                // 验证通过，则直接跳转参数设置页面
+                if (strResultDataHex.equals("0100")) {
+                    BluetoothApplication.getInstance().saveValueBySharedPreferences(
+                            DeviceScanActivity.getInstance().nowSelectDevice.address,strNowCheckCode)
+                    strNowCheckCode = ""
+                    readCodeUUID = null
+                    writeCodeUUID = null
+                    startActivity(Intent(mContext,SetWorkActivity().javaClass))
+                }
+                // 重新校验
+                else {
+                    checkCodeInfo("")
+                }
+
+            }
             // 读数据的通道并不是当前页面选择的通道，则不理会
             if (!characteristic?.uuid.toString().equals(selectRead?.uuidString,true)) {
                 return
@@ -344,7 +430,19 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
         @RequiresApi(Build.VERSION_CODES.N)
         override fun OnCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
             Log.e("OnWriteDataListener", "writeStatus:${status == 0}")
-            sendBroadcast(Intent(BC_WriteData).putExtra("BluetoothGattCharacteristic",characteristic).putExtra("status",status))
+            sendBroadcast(Intent(BC_WriteData).putExtra("UUID",characteristic!!.uuid).putExtra("status",status))
+            // 正在验证密码
+            if (writeCodeUUID != null) {
+                if (status != 0) {
+                    showToast("验证码写入失败！")
+                    return
+                }
+                val isRead = DeviceScanActivity.getInstance().mBLE.readCharacteristic(readCodeUUID!!.bluetoothGattCharacteristic)
+                if (!isRead) {
+                    showToast("读取失败！")
+                }
+            }
+
             // 写数据的通道并不是当前页面选择的通道，则不理会
             if (!characteristic?.uuid.toString().equals(selectWrite?.uuidString,true)) {
                 return
@@ -367,7 +465,7 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
         override fun OnCharacteristicRecv(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
             if (characteristic!!.value.size == 0) return
             Log.e("OnRecvDataListerner", "RECVDATA,to HEX:${Utils.bytesToHexString(characteristic!!.value)},to STR:${String(characteristic!!.value)}")
-            sendBroadcast(Intent(BC_RecvData).putExtra("BluetoothGattCharacteristic",characteristic))
+            sendBroadcast(Intent(BC_RecvData).putExtra("UUID",characteristic!!.uuid).putExtra("data",characteristic.value))
             // 接收数据的通道并不是当前页面选择的通道，则不理会
             if (!characteristic.uuid.toString().equals(selectRead?.uuidString,true)) {
                 return
@@ -410,16 +508,16 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
 
         runOnUiThread {
             getServerDialog.dismiss()
-            tvServerInfo.text = "Server:${selectServer?.uuidString}"
+            tvServerInfo.text = "S:${selectServer?.uuidString}"
 
             if (selectWrite != null)
-                tvWriteInfo.text = "Write:${selectWrite?.uuidString}"
+                tvWriteInfo.text = "W:${selectWrite?.uuidString}"
 
             if (selectRead == null) {
-                tvReadInfo.text = "Read:"
+                tvReadInfo.text = "R:"
                 return@runOnUiThread
             }
-            tvReadInfo.text = "Read:${selectRead?.uuidString}"
+            tvReadInfo.text = "R:${selectRead?.uuidString}"
             // 订阅通知
             val isNotification = DeviceScanActivity.getInstance().mBLE.setCharacteristicNotification(selectRead?.bluetoothGattCharacteristic, true)
             Log.e("TestDataActivity", "isNotification:$isNotification")

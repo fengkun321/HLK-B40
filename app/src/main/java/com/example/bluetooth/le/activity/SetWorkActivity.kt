@@ -9,26 +9,38 @@ import android.view.View
 import com.example.bluetooth.le.R
 import com.example.bluetooth.le.UUIDInfo
 import kotlinx.android.synthetic.main.activity_set_work.*
+import java.util.*
 
 class SetWorkActivity : BaseActivity(), View.OnClickListener {
 
     private lateinit var selectServer : UUIDInfo
     private lateinit var selectWrite : UUIDInfo
     private lateinit var selectRead : UUIDInfo
-    private val strServer = "02f00000-0000-0000-0000-00000000fe00"
-    private val strRead = "02f00000-0000-0000-0000-00000000ff02"
-    private val strWrite = "02f00000-0000-0000-0000-00000000ff01"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_set_work)
 
         imgBack.setOnClickListener(this)
+        tvRefresh.setOnClickListener(this)
+        btnNameSet.setOnClickListener(this)
+        btnCONNISet.setOnClickListener(this)
+        btnRFPowerSet.setOnClickListener(this)
+        btnBandSet.setOnClickListener(this)
+        rlVersion.setOnLongClickListener {
+            startActivity(Intent(mContext, OTAUpdateActivity::class.java))
+            false
+        }
+
+        tvMac.text = DeviceScanActivity.getInstance().nowSelectDevice.address
+
         bindReceiver()
 
         bindServerSubNofify()
 
+
     }
+
 
     private fun bindReceiver() {
         var intentFilter = IntentFilter()
@@ -43,18 +55,26 @@ class SetWorkActivity : BaseActivity(), View.OnClickListener {
 
         for (iPosition in 0 until TRXActivity.getInstance().serverList.size) {
             val serverUUID = TRXActivity.getInstance().serverList[iPosition]
-            if (serverUUID.uuidString.equals(strServer,true)) {
+            if (serverUUID.uuidString.equals(strSET_Server, true)) {
                 selectServer = serverUUID
                 val readArray = TRXActivity.getInstance().readCharaMap[selectServer.uuidString]
                 for (iR in 0 until readArray!!.size) {
-                    if (readArray[iR].uuidString.equals(strRead,true)) {
+                    // 读版本号
+                    if (readArray[iR].uuidString.equals(strVERSION_Read, true)) {
+                        val isRead = DeviceScanActivity.getInstance().mBLE.readCharacteristic(readArray[iR].bluetoothGattCharacteristic)
+                        if (!isRead) {
+                            showToast("版本号读取失败！")
+                        }
+                    }
+
+                    if (readArray[iR].uuidString.equals(strSET_Read, true)) {
                         selectRead = readArray[iR]
                         break
                     }
                 }
                 val writeArray = TRXActivity.getInstance().writeCharaMap[selectServer.uuidString]
                 for (iW in 0 until writeArray!!.size) {
-                    if (writeArray[iW].uuidString.equals(strWrite,true)) {
+                    if (writeArray[iW].uuidString.equals(strSET_Write, true)) {
                         selectWrite = writeArray[iW]
                         break
                     }
@@ -104,31 +124,38 @@ class SetWorkActivity : BaseActivity(), View.OnClickListener {
             val strAction = intent?.action
             // 主动读通道的回调
             if (strAction.equals(BC_ReadData)) {
-                val characteristic = intent?.getCharSequenceExtra("BluetoothGattCharacteristic") as BluetoothGattCharacteristic
-                val iStatus = intent?.getIntExtra("status",-1)
-                if (!characteristic.uuid.toString().equals(selectRead?.uuidString,true)) {
-                    return
+                val uuid = intent?.getSerializableExtra("UUID") as UUID
+                val iStatus = intent.getIntExtra("status", -1)
+                val dataValue = intent.getByteArrayExtra("data")
+                // 版本查询的回复
+                if (uuid.toString().equals(strVERSION_Read, true)) {
+                    val strVersion = "V ${String.format("%d",dataValue[0])}." +
+                            "${String.format("%02d",dataValue[1])}"
+                    tvVersion.text = strVersion
                 }
+                else if (uuid.toString().equals(selectRead?.uuidString, true)) {
 
-
+                }
 
             }
             // 写通道的回调
             else if (strAction.equals(BC_WriteData)) {
-                val characteristic = intent?.getCharSequenceExtra("BluetoothGattCharacteristic") as BluetoothGattCharacteristic
-                val iStatus = intent?.getIntExtra("status",-1)
-                if (!characteristic.uuid.toString().equals(selectWrite?.uuidString,true)) {
+                val uuid = intent?.getSerializableExtra("UUID") as UUID
+                val iStatus = intent?.getIntExtra("status", -1)
+
+                if (!uuid.toString().equals(selectWrite?.uuidString, true)) {
                     return
                 }
 
             }
             // 订阅通道的回调
             else if (strAction.equals(BC_RecvData)) {
-                val characteristic = intent?.getCharSequenceExtra("BluetoothGattCharacteristic") as BluetoothGattCharacteristic
-                if (!characteristic.uuid.toString().equals(selectRead?.uuidString,true)) {
+                val uuid = intent?.getSerializableExtra("UUID") as UUID
+                val dataValue = intent.getByteArrayExtra("data")
+                if (!uuid.toString().equals(selectRead?.uuidString, true)) {
                     return
                 }
-                val strResultData = String(characteristic.value)
+                val strResultData = String(dataValue)
                 // 正在查询参数
                 if (isQueryData) {
                     runOnUiThread { analyQueryData(strResultData) }
@@ -148,9 +175,9 @@ class SetWorkActivity : BaseActivity(), View.OnClickListener {
 
 
     /** 解析查询的回调数据 */
-    private val queryATData = arrayListOf<String>("AT+VER","AT+MAC",
-            "AT+NAME","AT+CONNI","AT+RFPOWER","AT+BAND")
-    private fun analyQueryData(strResult:String) {
+    private val queryATData = arrayListOf<String>("AT+VER", "AT+MAC",
+            "AT+NAME", "AT+CONNI", "AT+RFPOWER", "AT+BAND")
+    private fun analyQueryData(strResult: String) {
         var strWillSendData = ""
         if (strResult.contains("AT+VER")) {
             strWillSendData = queryATData[1]
@@ -170,11 +197,12 @@ class SetWorkActivity : BaseActivity(), View.OnClickListener {
         else if (strResult.contains("AT+BAND")) {
             // 最后一项了，查询结束
             isQueryData = false
-
+            loadingDialog.dismiss()
+            showToast("查询完成！")
         }
 
-        if (strWillSendData != null) {
-            startSendData(strWillSendData+"\r\n")
+        if (!strWillSendData.isEmpty()) {
+            startSendData(strWillSendData + "\r\n")
         }
 
     }
@@ -185,8 +213,9 @@ class SetWorkActivity : BaseActivity(), View.OnClickListener {
         when(v?.id) {
             R.id.imgBack -> finish()
             R.id.tvRefresh -> {
+                loadingDialog.showAndMsg("正在查询...")
                 isQueryData = true
-                val strSendData = queryATData[0]+"\r\n"
+                val strSendData = queryATData[0] + "\r\n"
                 startSendData(strSendData)
             }
             R.id.btnNameSet -> {
@@ -222,6 +251,7 @@ class SetWorkActivity : BaseActivity(), View.OnClickListener {
 
     override fun onDestroy() {
         super.onDestroy()
+        DeviceScanActivity.getInstance().mBLE.setCharacteristicNotification(selectRead.bluetoothGattCharacteristic, false)
         unregisterReceiver(mBroadcastReceiver)
     }
 

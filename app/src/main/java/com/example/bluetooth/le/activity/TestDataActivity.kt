@@ -137,7 +137,7 @@ class TestDataActivity : Activity(),View.OnClickListener{
             list.add("Name$i")
         }
 
-        view1.spinnerServer.setOnItemSelectedListener(onItemSelectedListener)
+        view1.spinnerServer.onItemSelectedListener = onItemSelectedListener
         view1.spinnerWrite.setOnItemSelectedListener(onItemWriteListener)
         view1.spinnerRead.setOnItemSelectedListener(onItemReadListener)
 

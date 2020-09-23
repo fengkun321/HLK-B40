@@ -44,9 +44,6 @@ class OTAUpdateActivity : BaseActivity() {
     private lateinit var selectWrite : UUIDInfo
     private lateinit var selectRead : UUIDInfo
     var isConnected = true
-    private val strServer = "02f00000-0000-0000-0000-00000000fe00"
-    private val strRead = "02f00000-0000-0000-0000-00000000ff02"
-    private val strWrite = "02f00000-0000-0000-0000-00000000ff01"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -210,18 +207,18 @@ class OTAUpdateActivity : BaseActivity() {
 
         for (iPosition in 0 until serverList.size) {
             val serverUUID = serverList[iPosition]
-            if (serverUUID.uuidString.equals(strServer,true)) {
+            if (serverUUID.uuidString.equals(strOTA_Server,true)) {
                 selectServer = serverUUID
                 val readArray = readCharaMap[selectServer.uuidString]
                 for (iR in 0 until readArray!!.size) {
-                    if (readArray[iR].uuidString.equals(strRead,true)) {
+                    if (readArray[iR].uuidString.equals(strOTA_Read,true)) {
                         selectRead = readArray[iR]
                         break
                     }
                 }
                 val writeArray = writeCharaMap[selectServer.uuidString]
                 for (iW in 0 until writeArray!!.size) {
-                    if (writeArray[iW].uuidString.equals(strWrite,true)) {
+                    if (writeArray[iW].uuidString.equals(strOTA_Write,true)) {
                         selectWrite = writeArray[iW]
                         break
                     }
@@ -454,7 +451,14 @@ class OTAUpdateActivity : BaseActivity() {
         super.onBackPressed()
         startGetServerTimer(false)
         DeviceScanActivity.getInstance().mBLE.disconnect()
+
+//        val intent0 = Intent(mContext, DeviceScanActivity::class.java)
+//        intent0.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+//        startActivity(intent0)
+
     }
+
+
 
 
 }

@@ -415,6 +415,7 @@ public class BluetoothLeClass {
 			Log.w(TAG, "BluetoothAdapter not initialized");
 			return false;
 		}
+
 		boolean isNotification = mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
 		return isNotification;
 	}

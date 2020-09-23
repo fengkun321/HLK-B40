@@ -12,9 +12,32 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.bluetooth.le.R;
+import com.example.bluetooth.le.view.LoadingDialog;
+
 public class BaseActivity extends Activity {
     protected Context mContext;
     protected Handler mHandler;
+
+    // OTA的相关服务与特征
+    protected String strOTA_Server = "02f00000-0000-0000-0000-00000000fe00";
+    protected String strOTA_Read = "02f00000-0000-0000-0000-00000000ff02";
+    protected String strOTA_Write = "02f00000-0000-0000-0000-00000000ff01";
+
+    // 参数设置的相关服务与特征
+    protected String strSET_Server = "02f00000-0000-0000-0000-00000000fe00";
+    protected String strVERSION_Read = "02f00000-0000-0000-0000-00000000ff03";
+    protected String strSET_Read = "02f00000-0000-0000-0000-00000000ff04";
+    protected String strSET_Write = "02f00000-0000-0000-0000-00000000ff04";
+
+    protected String strCHECK_Read = "02f00000-0000-0000-0000-00000000ff05";
+    protected String strCHECK_Write = "02f00000-0000-0000-0000-00000000ff05";
+
+    // 透传数据的相关服务与特征
+    protected String strSerial_Server = "0783b03e-8535-b5a0-7140-a304d2495cb7";
+    protected String strSerial_Read = "0783b03e-8535-b5a0-7140-a304d2495cb8";
+    protected String strSerial_Write = "0783b03e-8535-b5a0-7140-a304d2495cba";
+
 
     // 接收通知数据回调
     protected String BC_RecvData = "BC_RecvData";
@@ -23,12 +46,15 @@ public class BaseActivity extends Activity {
     // 读通道回调
     protected String BC_ReadData = "BC_ReadData";
 
+    protected LoadingDialog loadingDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         this.mContext = this;
         mHandler = new Handler();
+        loadingDialog = new LoadingDialog(mContext, R.style.dialog);
 
     }
 

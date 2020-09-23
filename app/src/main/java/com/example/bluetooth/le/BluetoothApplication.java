@@ -1,8 +1,7 @@
 package com.example.bluetooth.le;
 
 import android.app.Application;
-
-
+import android.content.SharedPreferences;
 
 
 public class BluetoothApplication extends Application {
@@ -29,6 +28,8 @@ public class BluetoothApplication extends Application {
 			application = this;
 		}
 		mTouchObject = new TouchObject();
+
+		pref = getSharedPreferences("SharedPreferencesInfo", 0);
 	}
 	
 	/**
@@ -53,6 +54,18 @@ public class BluetoothApplication extends Application {
 
 	public void setTouchObject(TouchObject touchObject) {
 		this.mTouchObject = touchObject;
+	}
+
+	private SharedPreferences pref  = null;
+	public void saveValueBySharedPreferences(String strKey,String strValue) {
+		SharedPreferences.Editor editor = pref.edit();
+		editor.putString(strKey, strValue);
+		editor.commit();
+	}
+
+	public String getValueBySharedPreferences(String strKey) {
+		String string = pref.getString(strKey,"");
+		return string;
 	}
 
 }

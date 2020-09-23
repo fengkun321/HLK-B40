@@ -224,8 +224,7 @@ public class DeviceScanActivity extends Activity {
 
 		imgSearch.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				if (mScanning)
-					return;
+				if (mScanning) return;
 				scanLeDevice(true);
 			}
 		});
