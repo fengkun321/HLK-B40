@@ -110,6 +110,7 @@ public class SendOTAFileTask extends AsyncTask<Object, String, String> {
         msgUpdate.what = 222;
         msgUpdate.obj = "**********升级完成，重启设备**********";
         mHandler.sendMessage(msgUpdate);
+
     }
 
     // 取消回调（可更新UI）

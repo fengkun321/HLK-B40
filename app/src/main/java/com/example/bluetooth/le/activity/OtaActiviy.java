@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -110,7 +111,7 @@ public class OtaActiviy extends Activity {
 
 		verifyStoragePermissions();
 		tempActivity = this;
-		List<BluetoothGattService> gattServices = DeviceScanActivity.getInstance().gattlist;
+		List<BluetoothGattService> gattServices = new ArrayList<>();
 		for (BluetoothGattService gatt : gattServices) {
 			gattCharacteristics = gatt.getCharacteristics();
 			for (final BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {

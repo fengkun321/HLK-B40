@@ -123,7 +123,7 @@ public class BleViewPage extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.myviewpage);
 		bleclass = DeviceScanActivity.getInstance().mBLE;
-		List<BluetoothGattService> gattServices = DeviceScanActivity.getInstance().gattlist;
+		List<BluetoothGattService> gattServices = new ArrayList<>();
 		for (BluetoothGattService gatt : gattServices) {
 			gattCharacteristics = gatt.getCharacteristics();
 			for (final BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {

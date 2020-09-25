@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -127,7 +128,7 @@ public class ReadWriteActivity extends Activity implements
 		bleclass = DeviceScanActivity.getInstance().mBLE;
 		macticity = this;
 		woperation = new WriterOperation();
-		List<BluetoothGattService> gattServices = DeviceScanActivity.getInstance().gattlist;
+		List<BluetoothGattService> gattServices = new ArrayList<>();
 		for (BluetoothGattService gatt : gattServices) {
 			gattCharacteristics = gatt.getCharacteristics();
 			for (final BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {

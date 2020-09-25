@@ -19,6 +19,7 @@ package com.example.bluetooth.le.activity;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -75,7 +76,6 @@ import com.example.bluetooth.le.utilInfo.ClsUtils;
  */
 public class DeviceScanActivity extends Activity {
 	private final static String TAG = DeviceScanActivity.class.getSimpleName();
-	public List<BluetoothGattService> gattlist;
 	public BluetoothDevice nowSelectDevice;
 	private LeDeviceListAdapter mLeDeviceListAdapter;
 	/** 搜索BLE终端 */
@@ -86,10 +86,9 @@ public class DeviceScanActivity extends Activity {
 	private Handler mHandler;
 	private static final long SCAN_PERIOD = 3000;
 	private ImageView imgSearch = null;
-	private Dialog dialog;
+	private ProgressDialog dialog;
 	private ListView blelv = null;
 	private TextView restv = null;
-	private boolean timeout = false;
 	private static DeviceScanActivity deviceScanActivity;
 	private static final int REQUEST_CODE_ACCESS_COARSE_LOCATION = 1;
 	public static final int REQUEST_LOCATION_PERMISSION = 2;
@@ -97,7 +96,6 @@ public class DeviceScanActivity extends Activity {
 	public static DeviceScanActivity getInstance() {
 		return deviceScanActivity;
 	}
-	private boolean isLongClick = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -143,8 +141,10 @@ public class DeviceScanActivity extends Activity {
 		}
 
 		mBLE = new BluetoothLeClass(this,mBluetoothAdapter);
-		dialog = new Dialog(this,R.style.dialog);  
+		dialog = new ProgressDialog(this);
         dialog.setContentView(R.layout.connetingdiglog);
+		dialog.setCanceledOnTouchOutside(false);
+		dialog.setMessage("正在连接，请稍后...");
 
 		receiveBLEBroadcast();
 
@@ -234,27 +234,10 @@ public class DeviceScanActivity extends Activity {
 		blelv.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				mBLE.disconnect();
-				nowSelectDevice = mLeDeviceListAdapter.getDevice(position);
-				if (nowSelectDevice == null) return;
 				scanLeDevice(false);
-				dialog.show();
-				timeout = false;
-				mBLE.connect(nowSelectDevice,OnConnectListener);
-			}
-		});
-		blelv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-			@Override
-			public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-				mBLE.disconnect();
 				nowSelectDevice = mLeDeviceListAdapter.getDevice(position);
-				if (nowSelectDevice == null) return false;
-				scanLeDevice(false);
 				dialog.show();
-				timeout = false;
-				isLongClick = true;
 				mBLE.connect(nowSelectDevice,OnConnectListener);
-				return true;
 			}
 		});
 
@@ -264,7 +247,6 @@ public class DeviceScanActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		scanLeDevice(true);
-		isLongClick = false;
 	}
 
 	@Override
@@ -273,30 +255,6 @@ public class DeviceScanActivity extends Activity {
 		scanLeDevice(false);
 	}
 
-
-	class OnItemClickListenerimp implements OnItemClickListener {
-
-		@Override
-		public void onItemClick(AdapterView<?> arg0, View v, int position,
-				long arg3) {
-
-
-			// 如果未配对，则建立配对
-//			if (nowSelectDevice.getBondState() == BluetoothDevice.BOND_NONE) {
-//				//如果这个设备取消了配对，则尝试配对
-//				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-//					nowSelectDevice.createBond();
-//				}
-//			}
-//			// 如果以配对，则开始连接
-//			else if (nowSelectDevice.getBondState() == BluetoothDevice.BOND_BONDED) {
-//				//如果这个设备已经配对完成，则尝试连接
-//				mBLE.connect(nowSelectDevice,OnConnectListener);
-//			}
-
-		}
-
-	}
 
 	BluetoothLeScanner scanner = null;
 	/** 启动/停止 搜索设备 */
@@ -336,17 +294,12 @@ public class DeviceScanActivity extends Activity {
 		public void onScanResult(int callbackType, ScanResult result) {
 			super.onScanResult(callbackType, result);
 			BluetoothDevice bluetoothDevice = result.getDevice();
-
 			Log.e(TAG, "onScanResult: "+result.toString());
-			// ScanRecord [
-			// mAdvertiseFlags=6,
-			// mServiceUuids=[00001812-0000-1000-8000-00805f9b34fb],
-			// mManufacturerSpecificData={0=[]},
-			// mServiceData={},
-			// mTxPowerLevel=-2147483648, // 传输功率水平
-			// mDeviceName=HLK-B40 test��
-			// ]
-			mLeDeviceListAdapter.addDevice(bluetoothDevice,result.getRssi()+"");
+			String strName = bluetoothDevice.getName();
+			if (strName != null && strName.length() > 0) {
+				mLeDeviceListAdapter.addDevice(bluetoothDevice,result.getRssi()+"");
+			}
+
 		}
 
 		@Override
@@ -372,32 +325,27 @@ public class DeviceScanActivity extends Activity {
 	private BluetoothLeClass.OnConnectListener OnConnectListener = new BluetoothLeClass.OnConnectListener() {
 		@Override
 		public void onConnectting(BluetoothGatt gatt, int status, int newState) {
-			Log.e("onConnectting","status: "+status+",newState:"+newState);
+			Log.e(TAG,"status: "+status+",newState:"+newState);
 		}
 
 		@Override
 		public void onConnected(BluetoothGatt gatt, int status, int newState) {
-			Log.e("onConnected","status: "+status+",newState:"+newState);
+			Log.e(TAG,"status: "+status+",newState:"+newState);
 			if (newState == BluetoothProfile.STATE_CONNECTED) {
 				dialog.dismiss();
-//				Intent intent = new Intent(DeviceScanActivity.this,TestDataActivity.class);
-				Intent intent = new Intent(DeviceScanActivity.this,TRXActivity.class);
-//				Intent intent = new Intent(DeviceScanActivity.this,OTAUpdateActivity.class);
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						startActivity(new Intent(DeviceScanActivity.this,TRXActivity.class));
+					}
+				});
 
-				// 长按，OTA
-				if (isLongClick) {
-					startActivity(new Intent(DeviceScanActivity.this,OTAUpdateActivity.class));
-				}
-				// 短按，透传
-				else {
-					startActivity(new Intent(DeviceScanActivity.this,TRXActivity.class));
-				}
 			}
 		}
 
 		@Override
 		public void onDisconnect(BluetoothGatt gatt, int status, int newState) {
-			Log.e("onDisconnect","status: "+status+",newState:"+newState);
+			Log.e(TAG,"status: "+status+",newState:"+newState);
 			dialog.dismiss();
 		}
 	};

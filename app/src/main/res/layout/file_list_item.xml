@@ -3,7 +3,8 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="horizontal"
-    android:padding="3dp" >
+    android:padding="3dp"
+	android:background="@drawable/item_select">
     <ImageView 
         android:id="@+id/fileImageView" 
 	    android:layout_width="40dp"
@@ -17,6 +18,6 @@
 	    android:layout_height="wrap_content"
 	    android:layout_marginLeft="5dp"
 	    android:textColor="#FFFFFF"
-	    android:textSize="20dp"
+	    android:textSize="17dp"
 	    android:text="@string/null_name"/>
 </LinearLayout>

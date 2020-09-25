@@ -84,7 +84,12 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
         rbStr.isChecked = true
         btnSend.setOnClickListener(this)
         btnChangeServer.setOnClickListener(this)
-        tvMenu.setOnClickListener{deviceSelectMenu()}
+        tvMenu.setOnClickListener{
+            strNowCheckCode = BluetoothApplication.getInstance().getValueBySharedPreferences(
+                    DeviceScanActivity.getInstance().nowSelectDevice.address)
+            checkCodeInfo(strNowCheckCode)
+//            deviceSelectMenu()
+        }
 
     }
 
@@ -145,8 +150,6 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
 
         // 设置MTU
         DeviceScanActivity.getInstance().mBLE.requestMtu(512)
-
-        getServerDialog.setTitle("获取服务中")
         getServerDialog.setMessage("获取服务信息,请稍后...")
         getServerDialog.show()
         startGetServerTimer(true)
@@ -202,13 +205,17 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
     private fun checkCodeInfo(strCode : String) {
         // 输入校验码
         if (strCode == "") {
-            val checkCodeDialog = AreaAddWindow(mContext,R.style.dialog,"请输入秘钥",object : AreaAddWindow.PeriodListener{
-                override fun refreshListener(string: String) {
-                    strNowCheckCode = string
-                    checkCodeInfo(strNowCheckCode)
-                }
-            },"",false)
-            checkCodeDialog.show()
+
+            runOnUiThread {
+                val checkCodeDialog = AreaAddWindow(mContext,R.style.dialog,"请输入秘钥",object : AreaAddWindow.PeriodListener{
+                    override fun refreshListener(string: String) {
+                        strNowCheckCode = string
+                        checkCodeInfo(strNowCheckCode)
+                    }
+                },"",false)
+                checkCodeDialog.show()
+            }
+
         }
         else {
             readCodeUUID = null
@@ -265,12 +272,18 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
     // 断开或连接 状态发生变化时调用
     private val OnConnectListener = object : BluetoothLeClass.OnConnectListener {
         override fun onConnected(gatt: BluetoothGatt?, status: Int, newState: Int) {
+            sendBroadcast(Intent(BC_ConnectStatus)
+                    .putExtra("isConnectState",true)
+                    .putExtra("strConnectState","Connected to GATT server."))
             var msgStop = Message()
             msgStop.what = iConnectState
             msgStop.obj = "Connected to GATT server."
             selfHandler.sendMessage(msgStop)
         }
         override fun onDisconnect(gatt: BluetoothGatt?, status: Int, newState: Int) {
+            sendBroadcast(Intent(BC_ConnectStatus)
+                    .putExtra("isConnectState",false)
+                    .putExtra("strConnectState","Disconnected from GATT server."))
             SendTimer(false,0,0)
             var msgStop = Message()
             msgStop.what = iConnectState
@@ -278,6 +291,9 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
             selfHandler.sendMessage(msgStop)
         }
         override fun onConnectting(gatt: BluetoothGatt?, status: Int, newState: Int) {
+            sendBroadcast(Intent(BC_ConnectStatus)
+                    .putExtra("isConnectState",false)
+                    .putExtra("strConnectState","Connectting to GATT..."))
             var msgStop = Message()
             msgStop.what = iConnectState
             msgStop.obj = "Connectting to GATT..."
@@ -366,10 +382,10 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
                 break
             }
         }
-//        selectServer = serverList[0]
+
         val readArray = readCharaMap[selectServer?.uuidString]
         val writeArray = writeCharaMap[selectServer?.uuidString]
-        if (readArray!!.size > 0) {
+        if (readArray != null) {
             for (readInfo in readArray) {
                 if (readInfo.uuidString.equals(strSerial_Read)) {
                     selectRead = readInfo
@@ -377,10 +393,10 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
                 }
             }
         }
-        if (writeArray!!.size > 0) {
-            for (readInfo in readArray) {
-                if (readInfo.uuidString.equals(strSerial_Write)) {
-                    selectWrite = readInfo
+        if (writeArray != null) {
+            for (writeInfo in writeArray) {
+                if (writeInfo.uuidString.equals(strSerial_Write)) {
+                    selectWrite = writeInfo
                     break
                 }
             }
@@ -396,9 +412,9 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
             sendBroadcast(Intent(BC_ReadData).putExtra("UUID",characteristic!!.uuid).putExtra("status",status).putExtra("data",characteristic.value))
             // 正在验证code
             if (readCodeUUID != null && characteristic?.uuid.toString().equals(readCodeUUID?.uuidString)) {
-                val strResultDataHex = Utils.bytesToHexString(characteristic?.value)
+//                val strResultDataHex = Utils.bytesToHexString(characteristic?.value)
                 // 验证通过，则直接跳转参数设置页面
-                if (strResultDataHex.equals("0100")) {
+                if (characteristic?.value[0].toInt() == 1) {
                     BluetoothApplication.getInstance().saveValueBySharedPreferences(
                             DeviceScanActivity.getInstance().nowSelectDevice.address,strNowCheckCode)
                     strNowCheckCode = ""
@@ -408,6 +424,7 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
                 }
                 // 重新校验
                 else {
+                    showToast("验证失败，请重试！")
                     checkCodeInfo("")
                 }
 
@@ -497,6 +514,7 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
     private val onChangeMTUListener = object : BluetoothLeClass.OnChangeMTUListener {
         override fun onChangeMTUListener(isResult: Boolean?, strMsg: String?, iMTU: Int) {
             Log.e("onChangeMTUListener", "MTU设置结果：$strMsg")
+            sendBroadcast(Intent(BC_ChangeMTU).putExtra("strMsg",strMsg).putExtra("iMTU",iMTU))
             runOnUiThread {
                 updateLog(strMsg!!)
             }

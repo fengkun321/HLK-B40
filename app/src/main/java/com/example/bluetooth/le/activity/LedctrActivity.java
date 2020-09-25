@@ -1,5 +1,6 @@
 package com.example.bluetooth.le.activity;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import com.example.bluetooth.le.BluetoothLeClass;
@@ -91,7 +92,7 @@ public class LedctrActivity extends Activity {
 		lightbtoff2.setOnClickListener(new OnclickListenerimp());
 		ledrg.setOnCheckedChangeListener(new OnCkeckedChangeListenerimp());
 		bleclass = DeviceScanActivity.getInstance().mBLE;
-		List<BluetoothGattService> gattServices = DeviceScanActivity.getInstance().gattlist;
+		List<BluetoothGattService> gattServices = new ArrayList<>();
 		for (BluetoothGattService gatt : gattServices) {
 			gattCharacteristics = gatt.getCharacteristics();
 			for (final BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {

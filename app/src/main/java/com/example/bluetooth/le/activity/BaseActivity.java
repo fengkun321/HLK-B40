@@ -34,9 +34,9 @@ public class BaseActivity extends Activity {
     protected String strCHECK_Write = "02f00000-0000-0000-0000-00000000ff05";
 
     // 透传数据的相关服务与特征
-    protected String strSerial_Server = "0783b03e-8535-b5a0-7140-a304d2495cb7";
-    protected String strSerial_Read = "0783b03e-8535-b5a0-7140-a304d2495cb8";
-    protected String strSerial_Write = "0783b03e-8535-b5a0-7140-a304d2495cba";
+    protected String strSerial_Server = "0783b03e-8535-b5a0-7140-00000000ff00";
+    protected String strSerial_Read = "0783b03e-8535-b5a0-7140-00000000ff01";
+    protected String strSerial_Write = "0783b03e-8535-b5a0-7140-00000000ff02";
 
 
     // 接收通知数据回调
@@ -45,6 +45,10 @@ public class BaseActivity extends Activity {
     protected String BC_WriteData = "BC_WriteData";
     // 读通道回调
     protected String BC_ReadData = "BC_ReadData";
+    // MTU改变的回调
+    protected String BC_ChangeMTU = "BC_ChangeMTU";
+    // 连接状态变化的回调
+    protected String BC_ConnectStatus = "BC_ConnectStatus";
 
     protected LoadingDialog loadingDialog;
 

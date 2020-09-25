@@ -95,10 +95,12 @@ public class SelectFileActivity extends Activity {
 				if(null != mLastClickView){
 					//若之前选中了文件， 则取消之前选择  -- 恢复颜色
 					mLastClickView.setTextColor(getResources().getColor(R.color.white));
+					mLastClickView.setTextSize(17.0f);
 				}
 				//改变文件名颜色, 选中文件
 				mNowClickView = (TextView) view.findViewById(R.id.fileNameTV);
 				mNowClickView.setTextColor(getResources().getColor(R.color.cheng));
+				mNowClickView.setTextSize(20.0f);
 				isSelected = true;
 				//设置为最后一次点击的文件
 				mLastClickView = mNowClickView;

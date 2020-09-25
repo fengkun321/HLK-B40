@@ -186,52 +186,32 @@ public class BluetoothLeClass {
 		return false;
 	}
 
-	private boolean isDiscoverServices = false;
 	private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
 		/**
 		 * 断开或连接 状态发生变化时调用
 		 * */
 		public void onConnectionStateChange(BluetoothGatt gatt,int status,int newState) {
-			Log.i(TAG, "onConnectionStateChange:status: "+status+",newState:"+newState);
+			Log.e(TAG, "onConnectionStateChange:status: "+status+",newState:"+newState);
 			mBluetoothGatt = gatt;
 			if (newState == BluetoothProfile.STATE_CONNECTED) {
 				if (mOnConnectListener != null)
 					mOnConnectListener.onConnected(gatt,status,newState);
-				Log.i(TAG, "Connected to GATT server.");
-//				try {
-//					Thread.sleep(600);
-//					Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
-//				} catch (InterruptedException e) {
-//					e.printStackTrace();
-//				}
-
-
-//				isDiscoverServices = false;
-//				while (!isDiscoverServices) {
-//					Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
-//					try {
-//						Thread.sleep(1000);
-//					} catch (InterruptedException e) {
-//						e.printStackTrace();
-//					}
-//				}
-
-
+				Log.e(TAG, "Connected to GATT server.");
 
 				isDisconnected = false;
 
 			} else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+				Log.e(TAG, "Disconnected from GATT server.");
 				if (mOnConnectListener != null)
 					mOnConnectListener.onDisconnect(gatt,status,newState);
 				isDisconnected = true;
 				gatt.close();
-				System.out.println("Disconnected from GATT server.");
 				updatastata("state");
 			} else if (newState == BluetoothProfile.STATE_CONNECTING) {
+				Log.e(TAG, "Connecting from GATT server.");
 				if (mOnConnectListener != null) {
 					mOnConnectListener.onConnectting(gatt,status,newState);
 				}
-				
 			}
 		}
 
@@ -239,13 +219,12 @@ public class BluetoothLeClass {
 		 * 发现指定设备的服务信息（真正建立连接）
 		 * */
 		public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-			Log.i(TAG, "onServicesDiscovered:status: "+status);
+			Log.e(TAG, "onServicesDiscovered:status: "+status);
 			if (status == BluetoothGatt.GATT_SUCCESS
 					&& mOnServiceDiscoverListener != null) {
-				isDiscoverServices = true;
 				mOnServiceDiscoverListener.onServiceDiscover(gatt);
 			} else {
-				Log.w(TAG, "onServicesDiscovered received: " + status);
+				Log.e(TAG, "onServicesDiscovered received: " + status);
 			}
 		}
 
@@ -313,36 +292,18 @@ public class BluetoothLeClass {
 	 *         callback.
 	 */
 	public boolean connect(BluetoothDevice device,OnConnectListener l) {
-		if (l != null) {
+		if (l != null)
 			mOnConnectListener = l;
-		}
-		isDiscoverServices = true;
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-			mBluetoothGatt = device.connectGatt(mContext,
-					true, mGattCallback, BluetoothDevice.TRANSPORT_LE);
-		} else {
-			mBluetoothGatt = device.connectGatt(mContext,
-					true, mGattCallback);
-		}
 
-//		BluetoothDevice device = mBluetoothAdapter
-//				.getRemoteDevice(address);
-//		if (device == null) {
-//			Log.w(TAG, "Device not found.  Unable to connect.");
-//			return false;
-//		}
-//		// We want to directly connect to the device, so we are setting the
-//		// autoConnect
-//		// parameter to false.
-//		mBluetoothGatt = device.connectGatt(mContext, false, mGattCallback);
-//		Log.d(TAG, "Trying to create a new connection.");
-//		mBluetoothDeviceAddress = address;
-//		if (mBluetoothGatt != null) {
-//			if (mBluetoothGatt.connect()) {
-//				return true;
-//			} else {
-//				return false;
-//			}
+		mBluetoothGatt = device.connectGatt(mContext,false, mGattCallback);
+
+//		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//			mBluetoothGatt = device.connectGatt(mContext,
+//					true, mGattCallback, BluetoothDevice.TRANSPORT_LE);
+//			Log.e(TAG, "start connect!");
+//		} else {
+//			mBluetoothGatt = device.connectGatt(mContext,
+//					true, mGattCallback);
 //		}
 		return true;
 	}
@@ -363,12 +324,12 @@ public class BluetoothLeClass {
 	 * callback.
 	 */
 	public void disconnect() {
-		isDiscoverServices = true;
 		System.out.println("disconnect");
-		if (mBluetoothGatt != null)
+		if (mBluetoothGatt != null) {
 			mBluetoothGatt.disconnect();
-		if (mBluetoothGatt != null)
 			mBluetoothGatt.close();
+			mBluetoothGatt = null;
+		}
 
 	}
 

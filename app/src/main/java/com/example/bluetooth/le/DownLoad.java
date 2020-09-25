@@ -44,7 +44,9 @@ public class DownLoad {
 				.getSystemService(ReadWriteActivity.macticity.CONNECTIVITY_SERVICE);
 		myMessage = new Message();
 		sdPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-		
+
+
+
 		
 		NetworkInfo network = conManager.getActiveNetworkInfo();
 		if (network != null) {

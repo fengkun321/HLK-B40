@@ -32,7 +32,7 @@ public class BluetoothservicesListview extends Activity{
         registerBoradcastReceiver(); 
         serviceslv = (ListView) findViewById(R.id.serviceslv);
         list = new ArrayList<Map<String,String>>();
-        List<BluetoothGattService> gattServices = DeviceScanActivity.getInstance().gattlist;
+        List<BluetoothGattService> gattServices = new ArrayList<>();
         for(BluetoothGattService gatt : gattServices){
         	gattCharacteristics = gatt.getCharacteristics();
         	for (final BluetoothGattCharacteristic  gattCharacteristic: gattCharacteristics) {

@@ -2,11 +2,8 @@ package com.example.bluetooth.le.activity
 
 import android.Manifest
 import android.app.Dialog
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
-import android.content.ContentValues
-import android.content.Intent
+import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -23,8 +20,8 @@ import com.example.bluetooth.le.utilInfo.GetOTAAddrTask
 import com.example.bluetooth.le.utilInfo.SendOTAFileTask
 import com.example.bluetooth.le.utilInfo.Utils
 import kotlinx.android.synthetic.main.activity_ota_update.*
-import kotlinx.android.synthetic.main.viewpager_two.view.*
 import java.io.File
+import java.io.FileInputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -53,28 +50,22 @@ class OTAUpdateActivity : BaseActivity() {
 
         initUI()
         verifyStoragePermissions()
+        bindReceiver()
+
+        bindServerSubNofify()
 
 
+    }
 
-        // 断开或连接 状态发生变化时调用
-        DeviceScanActivity.getInstance().mBLE.setOnConnectListener(OnConnectListener)
-        // 发现BLE终端的Service时回调
-        DeviceScanActivity.getInstance().mBLE.setOnServiceDiscoverListener(mOnServiceDiscover)
-        // 读操作的回调
-        DeviceScanActivity.getInstance().mBLE.setOnDataAvailableListener(OnDataAvailableListener)
-        // 写操作的回调
-        DeviceScanActivity.getInstance().mBLE.setOnWriteDataListener(OnWriteDataListener)
-        // 接收到硬件返回的数据
-        DeviceScanActivity.getInstance().mBLE.setOnRecvDataListener(OnRecvDataListerner)
-        DeviceScanActivity.getInstance().mBLE.setOnChangeMTUListener(onChangeMTUListener)
-
-        startGetServerTimer(true)
-
-//        serverList = TRXActivity.getInstance().serverList
-//        writeCharaMap = TRXActivity.getInstance().writeCharaMap
-//        readCharaMap = TRXActivity.getInstance().readCharaMap
-//        bindServerSubNofify()
-
+    private fun bindReceiver() {
+        var intentFilter = IntentFilter()
+        intentFilter.addAction(BC_ReadData)
+        intentFilter.addAction(BC_WriteData)
+        intentFilter.addAction(BC_RecvData)
+        intentFilter.addAction(BC_ChangeMTU)
+        intentFilter.addAction(BC_ConnectStatus)
+        // 注册广播
+        registerReceiver(mBroadcastReceiver, intentFilter)
     }
 
 
@@ -105,118 +96,22 @@ class OTAUpdateActivity : BaseActivity() {
             val strFilePath = tvFilePath.text.toString()
             startUpdateBT(strFilePath)
         }
-
-    }
-
-    private var getServerTimer = Timer()
-    private fun startGetServerTimer(isRun: Boolean) {
-        getServerTimer.cancel()
-        if (isRun) {
-            getServerTimer = Timer()
-            getServerTimer.schedule(object : TimerTask() {
-                override fun run() {
-                    val getResult = DeviceScanActivity.getInstance().mBLE.getServiceByGatt()
-                    if (!getResult) {
-
-                    }
-                }
-            }, 0, 5000)
-        }
-
-    }
-
-    var serverList = ArrayList<UUIDInfo>()
-    var readCharaMap = HashMap<String, ArrayList<UUIDInfo>>()
-    var writeCharaMap = HashMap<String, ArrayList<UUIDInfo>>()
-    /**
-     * 搜索到BLE终端服务的事件
-     */
-    private val mOnServiceDiscover = BluetoothLeClass.OnServiceDiscoverListener {
-        Log.e("onConnected", "mOnServiceDiscover: ${it.services.size}")
-
-        startGetServerTimer(false)
-        val gattlist = it.services
-        serverList.clear()
-        readCharaMap.clear()
-        writeCharaMap.clear()
-        for (bluetoothGattService in gattlist) {
-            val serverInfo = UUIDInfo(bluetoothGattService.uuid)
-            serverInfo.strCharactInfo = "[Server]"
-            serverList.add(serverInfo)
-            val readArray = ArrayList<UUIDInfo>()
-            val writeArray = ArrayList<UUIDInfo>()
-            val characteristics = bluetoothGattService.characteristics
-            for (characteristic in characteristics) {
-                val charaProp = characteristic.properties
-                var isRead = false
-                var isWrite = false
-                // 具备读的特征
-                var strReadCharactInfo = ""
-                // 具备写的特征
-                var strWriteCharactInfo = ""
-                if (charaProp and BluetoothGattCharacteristic.PROPERTY_READ > 0) {
-                    isRead = true
-                    strReadCharactInfo += "[PROPERTY_READ]"
-                    Log.e(ContentValues.TAG, "read_chara=" + characteristic.uuid + "----read_service=" + bluetoothGattService.uuid)
-                }
-                if (charaProp and BluetoothGattCharacteristic.PROPERTY_WRITE > 0) {
-                    isWrite = true
-                    strWriteCharactInfo += "[PROPERTY_WRITE]"
-                    Log.e(ContentValues.TAG, "write_chara=" + characteristic.uuid + "----write_service=" + bluetoothGattService.uuid)
-                }
-                if (charaProp and BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE > 0) {
-                    isWrite = true
-                    strWriteCharactInfo += "[PROPERTY_WRITE_NO_RESPONSE]"
-                    Log.e(ContentValues.TAG, "write_chara=" + characteristic.uuid + "----write_service=" + bluetoothGattService.uuid)
-                }
-                if (charaProp and BluetoothGattCharacteristic.PROPERTY_NOTIFY > 0) {
-                    isRead = true
-                    strReadCharactInfo += "[PROPERTY_NOTIFY]"
-                    Log.e(ContentValues.TAG, "notify_chara=" + characteristic.uuid + "----notify_service=" + bluetoothGattService.uuid)
-                }
-                if (charaProp and BluetoothGattCharacteristic.PROPERTY_INDICATE > 0) {
-                    isRead = true
-                    strReadCharactInfo += "[PROPERTY_INDICATE]"
-                    Log.e(ContentValues.TAG, "indicate_chara=" + characteristic.uuid + "----indicate_service=" + bluetoothGattService.uuid)
-                }
-                if (isRead) {
-                    val uuidInfo = UUIDInfo(characteristic.uuid)
-                    uuidInfo.strCharactInfo = strReadCharactInfo
-                    uuidInfo.bluetoothGattCharacteristic = characteristic
-                    readArray.add(uuidInfo)
-                }
-                if (isWrite) {
-                    val uuidInfo = UUIDInfo(characteristic.uuid)
-                    uuidInfo.strCharactInfo = strWriteCharactInfo
-                    uuidInfo.bluetoothGattCharacteristic = characteristic
-                    writeArray.add(uuidInfo)
-                }
-                readCharaMap.put(bluetoothGattService.uuid.toString(), readArray)
-                writeCharaMap.put(bluetoothGattService.uuid.toString(), writeArray)
-            }
-        }
-
-
-
-        bindServerSubNofify()
     }
 
     private fun bindServerSubNofify() {
 
-
-
-        for (iPosition in 0 until serverList.size) {
-            val serverUUID = serverList[iPosition]
+        for (iPosition in 0 until TRXActivity.getInstance().serverList.size) {
+            val serverUUID = TRXActivity.getInstance().serverList[iPosition]
             if (serverUUID.uuidString.equals(strOTA_Server,true)) {
                 selectServer = serverUUID
-                val readArray = readCharaMap[selectServer.uuidString]
+                val readArray = TRXActivity.getInstance().readCharaMap[selectServer.uuidString]
                 for (iR in 0 until readArray!!.size) {
                     if (readArray[iR].uuidString.equals(strOTA_Read,true)) {
                         selectRead = readArray[iR]
                         break
                     }
                 }
-                val writeArray = writeCharaMap[selectServer.uuidString]
+                val writeArray = TRXActivity.getInstance().writeCharaMap[selectServer.uuidString]
                 for (iW in 0 until writeArray!!.size) {
                     if (writeArray[iW].uuidString.equals(strOTA_Write,true)) {
                         selectWrite = writeArray[iW]
@@ -295,82 +190,89 @@ class OTAUpdateActivity : BaseActivity() {
         }
     }
 
-    // 断开或连接 状态发生变化时调用
-    private val OnConnectListener = object : BluetoothLeClass.OnConnectListener {
-        override fun onConnected(gatt: BluetoothGatt?, status: Int, newState: Int) {
-            isConnected = true
-            runOnUiThread {
-                updateLog("Connected to GATT server.")
+
+
+    val mBroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val strAction = intent?.action
+            // 主动读通道的回调
+            if (strAction.equals(BC_ReadData)) {
+                val uuid = intent?.getSerializableExtra("UUID") as UUID
+                val iStatus = intent.getIntExtra("status", -1)
+                val dataValue = intent.getByteArrayExtra("data")
+                if (uuid.toString().equals(selectRead?.uuidString, true)) {
+
+                }
+
             }
-        }
-        override fun onDisconnect(gatt: BluetoothGatt?, status: Int, newState: Int) {
-            isConnected = false
-            runOnUiThread {
-                updateLog("Disconnected from GATT server.")
+            // 写通道的回调
+            else if (strAction.equals(BC_WriteData)) {
+                val uuid = intent?.getSerializableExtra("UUID") as UUID
+                val iStatus = intent?.getIntExtra("status", -1)
+                if (uuid.toString().equals(selectWrite?.uuidString, true)) {
+
+                }
+
             }
-        }
-        override fun onConnectting(gatt: BluetoothGatt?, status: Int, newState: Int) {
-            isConnected = false
-            runOnUiThread {
-                updateLog("Connectting to GATT...")
+            // 由订阅的通道数据回调
+            else if (strAction.equals(BC_RecvData)) {
+                val uuid = intent?.getSerializableExtra("UUID") as UUID
+                val dataValue = intent.getByteArrayExtra("data")
+                if (uuid.toString().equals(selectRead?.uuidString, true)) {
+                    if (dataValue.isEmpty()) return
+                    // 正在获取位置信息
+                    if (isGetOTAAddr) {
+                        getOTAAddrTask?.recvValue = dataValue
+                        getOTAAddrTask?.isResultCallBack = true
+                        return
+                    }
+                    // 正在发文件
+                    if (isSendOTAFile) {
+                        sendOTAFileTask?.recvValue = dataValue
+                        sendOTAFileTask?.isResultCallBack = true
+                        return
+                    }
+                }
+
             }
-
-        }
-    }
-
-    // 读操作的回调
-    private val OnDataAvailableListener = object : BluetoothLeClass.OnDataAvailableListener {
-        override fun onCharacteristicRead(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
-        }
-    }
-
-    // 写操作的回调
-    private val OnWriteDataListener = object : BluetoothLeClass.OnWriteDataListener {
-        override fun OnCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
-            Log.e("OnWriteDataListener", "writeStatus:${status == 0})")
-            // 如果没在升级，则打印写的结果
-        }
-    }
-
-    // 接收到硬件返回的数据
-    private val OnRecvDataListerner = object : BluetoothLeClass.OnRecvDataListerner {
-        override fun OnCharacteristicRecv(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
-            if (characteristic!!.value.size == 0) return
-            // 正在获取位置信息
-            if (isGetOTAAddr) {
-                getOTAAddrTask?.recvValue = characteristic.value
-                getOTAAddrTask?.isResultCallBack = true
-                return
-            }
-            // 正在发文件
-            if (isSendOTAFile) {
-                sendOTAFileTask?.recvValue = characteristic.value
-                sendOTAFileTask?.isResultCallBack = true
-                return
-            }
-
-
-        }
-    }
-
-
-    /** MTU改变监听 */
-    private val onChangeMTUListener = object : BluetoothLeClass.OnChangeMTUListener {
-        override fun onChangeMTUListener(isResult: Boolean?, strMsg: String?, iMTU: Int) {
-            runOnUiThread {
+            // MTU改变的回调
+            else if (strAction.equals(BC_ChangeMTU)) {
+                val strMsg = intent?.getStringExtra("strMsg")
+                val iMTU = intent?.getIntExtra("iMTU",0)!!
                 updateLog(strMsg!!)
-            }
+                Log.e("onChangeMTUListener", "MTU设置结果：$strMsg")
+                // 正在升级
+                if (mDialog.isShowing) {
+                    everyPackageSize = iMTU - 3 - 9
+                    // 启动关于地址的线程(activity,发送帮助类，写事件，文件长度)
+                    isGetOTAAddr = true
+                    getOTAAddrTask = GetOTAAddrTask()
+                    getOTAAddrTask?.execute(handler, woperation, selectWrite, fileLength)
+                }
 
-            Log.e("onChangeMTUListener", "MTU设置结果：$strMsg")
-            // 正在升级
-            if (mDialog.isShowing) {
-                everyPackageSize = iMTU - 3 - 9
-                // 启动关于地址的线程(activity,发送帮助类，写事件，文件长度)
-                isGetOTAAddr = true
-                getOTAAddrTask = GetOTAAddrTask()
-                getOTAAddrTask?.execute(handler, woperation, selectWrite, fileLength)
+            }
+            // 连接状态变化的回调
+            else if (strAction.equals(BC_ConnectStatus)) {
+                val isConnectState = intent?.getBooleanExtra("isConnectState",false)!!
+                val strConnectState = intent?.getStringExtra("strConnectState")!!
+                isConnected = isConnectState
+                updateLog(strConnectState)
+                // 连接已断开
+                if (!isConnectState) {
+                    // 因为固件已升级，并重启设备，则自动返回列表界面
+                    if (loadingDialog.isShowing) {
+                        DeviceScanActivity.getInstance().mBLE.setCharacteristicNotification(selectRead.bluetoothGattCharacteristic, false)
+                        DeviceScanActivity.getInstance().mBLE.disconnect()
+                        unregisterReceiver(this)
+                        val intent0 = Intent(mContext, DeviceScanActivity::class.java)
+                        intent0.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        startActivity(intent0)
+                        finish()
+                    }
+                }
             }
         }
+
     }
 
     /** 开始升级
@@ -383,16 +285,33 @@ class OTAUpdateActivity : BaseActivity() {
      * */
     private fun startUpdateBT(strFilePath: String) {
         if (strFilePath.equals("请选择 bin 文件")) return
+        // 校验文件
+        if (!checkFileOK(strFilePath.trim())) return
         selectFile = File(strFilePath.trim())
         fileLength = selectFile!!.length()
         updateLog("大小：${Utils.formatFileSize(fileLength)}")
-        // 校验文件
-//        if (!checkFileOK(file)) return
         tvLog.text = ""
         updateLog("!!!!!!!!!!开始升级!!!!!!!!!!\n文件：$strFilePath")
         mDialog.show()
         Log.e("doSendFileByBluetooth", "设置MTU:512")
         DeviceScanActivity.getInstance().mBLE.requestMtu(512)
+    }
+
+    private fun checkFileOK(strUrl : String) : Boolean {
+        val checkFile = File(strUrl)
+        val checkFileMaxLength = checkFile.length()
+        val infile = FileInputStream(checkFile)
+        var Buffer = ByteArray(0x5c)
+        infile.read(Buffer, 0, Buffer.size)
+        if (Buffer[0x58].toInt() != 0x51 || Buffer[0x59].toInt() != 0x52 || Buffer[0x5a].toInt() != 0x52 || Buffer[0x5b].toInt() != 0x51) {
+            Toast.makeText(mContext, "请选择正确的文件", Toast.LENGTH_LONG).show()
+            infile.close()
+            return false
+        }
+        else {
+            infile.close()
+            return true
+        }
     }
 
     /** 开始发送文件 */
@@ -424,6 +343,7 @@ class OTAUpdateActivity : BaseActivity() {
                     sendOTAFileTask?.cancel(true)
                     val strMsg = (msg.obj).toString()
                     updateLog(strMsg)
+                    loadingDialog.showAndMsg("正在重启...")
                 }
                 iRecvLog -> {
                     val strMsg = (msg.obj).toString()
@@ -449,12 +369,7 @@ class OTAUpdateActivity : BaseActivity() {
 
     override fun onBackPressed() {
         super.onBackPressed()
-        startGetServerTimer(false)
-        DeviceScanActivity.getInstance().mBLE.disconnect()
-
-//        val intent0 = Intent(mContext, DeviceScanActivity::class.java)
-//        intent0.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-//        startActivity(intent0)
+        unregisterReceiver(mBroadcastReceiver)
 
     }
 
