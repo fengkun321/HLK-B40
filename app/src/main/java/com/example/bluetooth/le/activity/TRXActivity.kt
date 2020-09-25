@@ -420,7 +420,8 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
                     strNowCheckCode = ""
                     readCodeUUID = null
                     writeCodeUUID = null
-                    startActivity(Intent(mContext,SetWorkActivity().javaClass))
+                    runOnUiThread { startActivity(Intent(mContext,SetWorkActivity().javaClass)) }
+
                 }
                 // 重新校验
                 else {

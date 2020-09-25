@@ -303,6 +303,7 @@ class SetWorkActivity : BaseActivity(), View.OnClickListener {
                 if (!isConnectState) {
                     // 因为发了重启设备的指令，则自动返回列表界面
                     if (strWillSendData.contains("REBOOT") && loadingDialog.isShowing) {
+                        DeviceScanActivity.getInstance().mBLE.disconnect()
                         val intent0 = Intent(mContext, DeviceScanActivity::class.java)
                         intent0.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent0)
@@ -552,7 +553,6 @@ class SetWorkActivity : BaseActivity(), View.OnClickListener {
     override fun onDestroy() {
         super.onDestroy()
         DeviceScanActivity.getInstance().mBLE.setCharacteristicNotification(selectRead.bluetoothGattCharacteristic, false)
-        DeviceScanActivity.getInstance().mBLE.disconnect()
         unregisterReceiver(mBroadcastReceiver)
     }
 
