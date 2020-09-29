@@ -142,7 +142,6 @@ public class DeviceScanActivity extends Activity {
 
 		mBLE = new BluetoothLeClass(this,mBluetoothAdapter);
 		dialog = new ProgressDialog(this);
-        dialog.setContentView(R.layout.connetingdiglog);
 		dialog.setCanceledOnTouchOutside(false);
 		dialog.setMessage("正在连接，请稍后...");
 

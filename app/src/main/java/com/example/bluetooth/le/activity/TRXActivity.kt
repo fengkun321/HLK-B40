@@ -67,7 +67,7 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
                 val strSpeed = edSpeed.text.toString()
                 val strMaxNum = edMaxNum.text.toString()
                 val strSendData = edData.text.toString()
-                if (strSpeed != null && !strSpeed.equals("") &&
+                if (strSpeed != null && !strSpeed.equals("") && (strSpeed.toInt() != 0) &&
                         strMaxNum != null && !strMaxNum.equals("") &&
                         strSendData != null && !strSendData.equals("")) {
                     val iCount = strMaxNum.toInt()
@@ -621,8 +621,15 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
     private fun updateLog(strValue: String) {
         val date = Date()
         val dateFormat = SimpleDateFormat("HH:mm:ss:SSS")
-        tvLog.text = tvLog.text.toString().plus("\n${dateFormat.format(date)}$strValue")
-        scrollView.fullScroll(ScrollView.FOCUS_DOWN)
+        if (tvLog.lineCount > 200) {
+            tvLog.text = "\n${dateFormat.format(date)}$strValue"
+        }
+        else {
+            tvLog.text = tvLog.text.toString().plus("\n${dateFormat.format(date)}$strValue")
+            scrollView.fullScroll(ScrollView.FOCUS_DOWN)
+        }
+
+
     }
 
     override fun onClick(v: View?) {
