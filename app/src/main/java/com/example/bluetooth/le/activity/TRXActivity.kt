@@ -571,8 +571,8 @@ class TRXActivity : BaseActivity(), View.OnClickListener{
                     val dataBundle = msg.obj as Bundle
                     val iLength = dataBundle["iLength"].toString().toInt()
                     val strData = dataBundle["strData"].toString()
-                    iSendLength += iLength
-                    tvRecvLen.text = "接收:$iSendLength"
+                    iRecvLength += iLength
+                    tvRecvLen.text = "接收:$iRecvLength"
                     updateLog("<<<接收:$strData,长度:$iLength")
                 }
                 iSendDataLog -> {

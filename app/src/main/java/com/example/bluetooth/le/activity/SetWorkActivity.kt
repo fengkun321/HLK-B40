@@ -79,16 +79,13 @@ class SetWorkActivity : BaseActivity(), View.OnClickListener {
         switchAutoSleep.tag = false
         switchAutoSleep.setOnTouchListener(switchListener)
         switchAutoSleep.setOnCheckedChangeListener { buttonView, isChecked ->
-            // 发指令
-            if (isChecked) {
-                if (switchAutoSleep.tag as Boolean) {
-                    switchAutoSleep.tag = false
-                    startSendByTimer(false, true, "AT+SLEEPEN=0\r\n")
-                }
-            } else {
-                if (switchAutoSleep.tag as Boolean) {
-                    switchAutoSleep.tag = false
+            if (switchAutoSleep.tag as Boolean) {
+                switchAutoSleep.tag = false
+                // 发指令
+                if (isChecked) {
                     startSendByTimer(false, true, "AT+SLEEPEN=1\r\n")
+                } else {
+                    startSendByTimer(false, true, "AT+SLEEPEN=0\r\n")
                 }
             }
         }

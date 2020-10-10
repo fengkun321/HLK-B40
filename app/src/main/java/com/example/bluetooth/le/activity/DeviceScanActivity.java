@@ -34,6 +34,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
@@ -212,6 +213,16 @@ public class DeviceScanActivity extends Activity {
 		imgSearch = (ImageView) findViewById(R.id.search_img);
 		blelv = (ListView) findViewById(R.id.blelv);
 		restv = (TextView) findViewById(R.id.restv);
+		TextView tvVersion = (TextView) findViewById(R.id.tvVersion);
+
+		String strVersionInfo = "";
+		try {
+			PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+			strVersionInfo = packageInfo.versionName;
+		} catch (PackageManager.NameNotFoundException e) {
+			e.printStackTrace();
+		}
+		tvVersion.setText("V "+strVersionInfo);
 
 		roanimation = new RotateAnimation(0f, 360f, Animation.RELATIVE_TO_SELF,
 				0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
@@ -223,8 +234,7 @@ public class DeviceScanActivity extends Activity {
 
 		imgSearch.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				if (mScanning) return;
-				scanLeDevice(true);
+				scanLeDevice(!mScanning);
 			}
 		});
 
@@ -259,12 +269,12 @@ public class DeviceScanActivity extends Activity {
 	/** 启动/停止 搜索设备 */
 	private void scanLeDevice(final boolean enable) {
 		if (enable) {
-			mHandler.postDelayed(new Runnable() {
-				@Override
-				public void run() {
-					scanLeDevice(false);
-				}
-			}, SCAN_PERIOD);
+//			mHandler.postDelayed(new Runnable() {
+//				@Override
+//				public void run() {
+//					scanLeDevice(false);
+//				}
+//			}, SCAN_PERIOD);
 			imgSearch.startAnimation(roanimation);
 			mScanning = true;
 			restv.setText("Searching...");
