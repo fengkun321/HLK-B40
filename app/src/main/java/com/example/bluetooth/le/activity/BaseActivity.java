@@ -34,9 +34,9 @@ public class BaseActivity extends Activity {
     protected String strCHECK_Write = "02f00000-0000-0000-0000-00000000ff05";
 
     // 透传数据的相关服务与特征
-    protected String strSerial_Server = "0783b03e-8535-b5a0-7140-00000000ff00";
-    protected String strSerial_Read = "0783b03e-8535-b5a0-7140-00000000ff01";
-    protected String strSerial_Write = "0783b03e-8535-b5a0-7140-00000000ff02";
+    protected String strSerial_Server = "0000fff0-0000-1000-8000-00805f9b34fb";
+    protected String strSerial_Read = "0000fff1-0000-1000-8000-00805f9b34fb";
+    protected String strSerial_Write = "0000fff2-0000-1000-8000-00805f9b34fb";
 
 
     // 接收通知数据回调

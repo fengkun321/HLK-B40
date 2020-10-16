@@ -6,14 +6,24 @@ android {
     compileSdkVersion 29
     buildToolsVersion "28.0.3"
 
+    def projectName = "HLK-B40"
+
     defaultConfig {
         applicationId "com.hlk.bluetooth.le"
         minSdkVersion 21
         targetSdkVersion 29
 
-        versionCode 5
-        versionName "1.0.4"
+        versionCode 6
+        versionName "1.0.5"
 
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            String fileName = projectName + "_" + buildType.name + "_" + defaultConfig.versionName + ".apk";
+            println "fileName:" + fileName;
+            outputFileName = fileName;
+        }
     }
 
     buildTypes {
