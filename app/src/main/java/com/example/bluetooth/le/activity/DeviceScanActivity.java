@@ -280,17 +280,18 @@ public class DeviceScanActivity extends Activity {
 			restv.setText("Searching...");
 			mLeDeviceListAdapter.clear();
 //			mBluetoothAdapter.startDiscovery();
-//			mBluetoothAdapter.startLeScan(leScanCallback);
+			mBluetoothAdapter.startLeScan(leScanCallback);
 			if (scanner == null)
 				scanner = mBluetoothAdapter.getBluetoothLeScanner();
 			scanner.startScan(scanCallback);
+//			scanner.startScan(null,null,scanCallback);
 
 		} else {
 			mScanning = false;
 			imgSearch.clearAnimation();
 			restv.setText("Stop the search");
 //			mBluetoothAdapter.cancelDiscovery();
-//			mBluetoothAdapter.stopLeScan(leScanCallback);
+			mBluetoothAdapter.stopLeScan(leScanCallback);
 
 			if (scanner != null)
 				scanner.stopScan(scanCallback);
@@ -308,6 +309,7 @@ public class DeviceScanActivity extends Activity {
 			if (strName != null && strName.length() > 0) {
 				mLeDeviceListAdapter.addDevice(bluetoothDevice,result.getRssi()+"");
 			}
+//			mLeDeviceListAdapter.addDevice(bluetoothDevice,result.getRssi()+"");
 
 		}
 
@@ -325,7 +327,11 @@ public class DeviceScanActivity extends Activity {
 	private BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback() {
 		@Override
 		public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-			mLeDeviceListAdapter.addDevice(device,rssi+"");
+			String strName = device.getName();
+			if (strName != null && strName.length() > 0) {
+				mLeDeviceListAdapter.addDevice(device,rssi+"");
+			}
+//			mLeDeviceListAdapter.addDevice(device,rssi+"");
 		}
 	};
 
@@ -383,7 +389,12 @@ public class DeviceScanActivity extends Activity {
 			if (BluetoothDevice.ACTION_FOUND.equals(action)) {
 				device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 				String strRSSI = b.get(BluetoothDevice.EXTRA_RSSI)+"";
-				mLeDeviceListAdapter.addDevice(device,strRSSI);
+				String strName = device.getName();
+				if (strName != null && strName.length() > 0) {
+					mLeDeviceListAdapter.addDevice(device,strRSSI);
+				}
+//				mLeDeviceListAdapter.addDevice(device,strRSSI);
+
 			}
 			//状态改变时
 			else if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {

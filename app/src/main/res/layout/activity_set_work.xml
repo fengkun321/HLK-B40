@@ -535,7 +535,6 @@
                     android:layout_marginBottom="5dp"
                     android:gravity="center_vertical"
                     android:paddingLeft="10dp"
-                    android:textSize="12sp"
                     android:maxLength="12"
                     android:hint="12位十六进制字符串"
                     android:singleLine="true"
@@ -576,7 +575,6 @@
                     android:layout_marginBottom="5dp"
                     android:gravity="center_vertical"
                     android:paddingLeft="10dp"
-                    android:textSize="12sp"
                     android:maxLength="8"
                     android:hint="8位字符串"
                     android:singleLine="true"
@@ -593,6 +591,177 @@
 
             </RelativeLayout>
 
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="1dp"
+                android:background="@color/tou">
+                <TextView android:id="@+id/tvJianGe"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="重连间隔(单位:s 不重连:0)："
+                    android:textColor="@color/white"
+                    android:gravity="center_vertical"
+                    android:layout_marginLeft="5dp"/>
+
+                <EditText android:id="@+id/edRECONNI"
+                    android:layout_width="180dp"
+                    android:layout_height="match_parent"
+                    android:layout_toRightOf="@+id/tvJianGe"
+                    android:layout_toLeftOf="@+id/btnRECONNI"
+                    android:layout_centerVertical="true"
+                    android:layout_marginRight="5dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="10dp"
+                    android:maxLength="2"
+                    android:hint="0~60"
+                    android:inputType="number"
+                    android:singleLine="true"
+                    android:background="@drawable/bg_edittext_focused"/>
+
+                <Button android:id="@+id/btnRECONNI"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="设置"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginRight="5dp"
+                    android:layout_centerVertical="true"/>
+
+
+            </RelativeLayout>
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="透传相关服务："
+                android:textColor="@color/white"
+                android:layout_marginTop="1dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/tou">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="透传服务(32个16进制数)："
+                    android:textColor="@color/white"
+                    android:layout_marginLeft="5dp"/>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp">
+
+                    <EditText android:id="@+id/edUUIDS"
+                        android:layout_width="fill_parent"
+                        android:layout_height="match_parent"
+                        android:layout_toLeftOf="@+id/btnUUIDS"
+                        android:layout_centerVertical="true"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="5dp"
+                        android:textSize="13sp"
+                        android:maxLength="32"
+                        android:hint="32个长度"
+                        android:singleLine="true"
+                        android:background="@drawable/bg_edittext_focused"/>
+
+                    <Button android:id="@+id/btnUUIDS"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="设置"
+                        android:layout_alignParentRight="true"
+                        android:layout_marginRight="5dp"
+                        android:layout_centerVertical="true"/>
+
+                </RelativeLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Read特征，模块发，APP收(32个16进制数)："
+                    android:textColor="@color/white"
+                    android:layout_marginLeft="5dp"/>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp">
+
+                    <EditText android:id="@+id/edUUIDR"
+                        android:layout_width="fill_parent"
+                        android:layout_height="match_parent"
+                        android:layout_toLeftOf="@+id/btnUUIDR"
+                        android:layout_centerVertical="true"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="5dp"
+                        android:textSize="13sp"
+                        android:maxLength="32"
+                        android:hint="32个长度"
+                        android:singleLine="true"
+                        android:background="@drawable/bg_edittext_focused"/>
+
+                    <Button android:id="@+id/btnUUIDR"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="设置"
+                        android:layout_alignParentRight="true"
+                        android:layout_marginRight="5dp"
+                        android:layout_centerVertical="true"/>
+
+                </RelativeLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Write特征，APP发，模块收(32个16进制数)："
+                    android:textColor="@color/white"
+                    android:layout_marginLeft="5dp"/>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp">
+
+                    <EditText android:id="@+id/edUUIDW"
+                        android:layout_width="fill_parent"
+                        android:layout_height="match_parent"
+                        android:layout_toLeftOf="@+id/btnUUIDW"
+                        android:layout_centerVertical="true"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="5dp"
+                        android:textSize="13sp"
+                        android:maxLength="32"
+                        android:hint="32个长度"
+                        android:singleLine="true"
+                        android:background="@drawable/bg_edittext_focused"/>
+
+                    <Button android:id="@+id/btnUUIDW"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="设置"
+                        android:layout_alignParentRight="true"
+                        android:layout_marginRight="5dp"
+                        android:layout_centerVertical="true"/>
+
+                </RelativeLayout>
+
+
+            </LinearLayout>
 
 
 

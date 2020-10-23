@@ -45,6 +45,10 @@ class SetWorkActivity : BaseActivity(), View.OnClickListener {
         btnPEERMAC.setOnClickListener(this)
         btnPINCODE.setOnClickListener(this)
         btnAUTHPWG.setOnClickListener(this)
+        btnRECONNI.setOnClickListener(this)
+        btnUUIDS.setOnClickListener(this)
+        btnUUIDR.setOnClickListener(this)
+        btnUUIDW.setOnClickListener(this)
         btnDefault.setOnClickListener(this)
         btnReStart.setOnClickListener(this)
 
@@ -319,7 +323,7 @@ class SetWorkActivity : BaseActivity(), View.OnClickListener {
     /** 解析查询的回调数据 */
     private val queryATData = arrayListOf<String>("AT+VER", "AT+NAME", "AT+BAND", "AT+RFPOWER",
             "AT+SLEEPEN", "AT+CONNI", "AT+ADVI", "AT+ADVDATA", "AT+ROLE",
-            "AT+ENCRYPT", "AT+PINCODE", "AT+PEERMAC", "AT+AUTHPWG")
+            "AT+ENCRYPT", "AT+PINCODE", "AT+PEERMAC", "AT+AUTHPWG", "AT+RECONNI", "AT+UUIDS", "AT+UUIDR", "AT+UUIDW")
 
     private fun analyQueryData(strResult: String) {
         val resultArray = strResult.split("\r\n")
@@ -402,6 +406,27 @@ class SetWorkActivity : BaseActivity(), View.OnClickListener {
         } else if (strResult.contains("AT+AUTHPWG")) {
             if (resultArray[1].equals("OK"))
                 edAUTHPWG.setText(resultValue)
+            strWillSendData = queryATData[13]
+        }
+        else if (strResult.contains("AT+RECONNI")) {
+            if (resultArray[1].equals("OK"))
+                edRECONNI.setText(resultValue)
+            strWillSendData = queryATData[14]
+        }
+        else if (strResult.contains("AT+UUIDS")) {
+            if (resultArray[1].equals("OK"))
+                edUUIDS.setText(resultValue)
+            strWillSendData = queryATData[15]
+        }
+        else if (strResult.contains("AT+UUIDR")) {
+            if (resultArray[1].equals("OK"))
+                edUUIDR.setText(resultValue)
+            strWillSendData = queryATData[16]
+        }
+        else if (strResult.contains("AT+UUIDW")) {
+            if (resultArray[1].equals("OK"))
+                edUUIDW.setText(resultValue)
+            strWillSendData = ""
             // 最后一项了，查询结束
             isQueryData = false
             loadingDialog.dismiss()
@@ -473,6 +498,30 @@ class SetWorkActivity : BaseActivity(), View.OnClickListener {
                 val strValue = edAUTHPWG.text.toString()
                 if (!strValue.equals("")) {
                     startSendByTimer(false, true, "AT+AUTHPWG=$strValue\r\n")
+                }
+            }
+            R.id.btnRECONNI -> {
+                val strValue = edRECONNI.text.toString()
+                if (!strValue.equals("")) {
+                    startSendByTimer(false, true, "AT+RECONNI=$strValue\r\n")
+                }
+            }
+            R.id.btnUUIDS -> {
+                val strValue = edUUIDS.text.toString()
+                if (!strValue.equals("")) {
+                    startSendByTimer(false, true, "AT+UUIDS=$strValue\r\n")
+                }
+            }
+            R.id.btnUUIDR -> {
+                val strValue = edUUIDR.text.toString()
+                if (!strValue.equals("")) {
+                    startSendByTimer(false, true, "AT+UUIDR=$strValue\r\n")
+                }
+            }
+            R.id.btnUUIDW -> {
+                val strValue = edUUIDW.text.toString()
+                if (!strValue.equals("")) {
+                    startSendByTimer(false, true, "AT+UUIDW=$strValue\r\n")
                 }
             }
             R.id.btnDefault -> {
