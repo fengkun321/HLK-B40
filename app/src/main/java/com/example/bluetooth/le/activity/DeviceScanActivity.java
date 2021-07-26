@@ -98,6 +98,8 @@ public class DeviceScanActivity extends Activity {
 		return deviceScanActivity;
 	}
 
+
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -364,9 +366,6 @@ public class DeviceScanActivity extends Activity {
 			dialog.dismiss();
 		}
 	};
-
-
-
 
 	String PIN = "0000";
 	/**
