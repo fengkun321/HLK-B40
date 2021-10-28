@@ -330,8 +330,14 @@ class SetWorkActivity : BaseActivity(), View.OnClickListener {
         var resultValue = resultArray[0].substring(strResult.indexOf("=") + 1)
         var strWillSendData = ""
         if (strResult.contains("AT+VER")) {
-            if (resultArray[1].equals("OK"))
-                tvVersion.text = "V $resultValue"
+//            if (resultArray.size > 1) {
+//                if (resultArray[1].equals("OK"))
+//                    tvVersion.text = "V $resultValue"
+//            }
+//            else {
+//                tvVersion.text = "V $resultValue"
+//            }
+            tvVersion.text = "V $resultValue"
             strWillSendData = queryATData[1]
         } else if (strResult.contains("AT+NAME")) {
             if (resultArray[1].equals("OK"))
